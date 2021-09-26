@@ -17,10 +17,13 @@ require (
 	github.com/elastic/go-elasticsearch/v8 v8.0.0-20210708134649-33f644c8e327
 	github.com/etsy/statsd v0.9.0
 	github.com/go-playground/validator/v10 v10.7.0
+	github.com/go-redis/redis/v8 v8.11.3 // indirect
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/gocql/gocql v0.0.0-20210817081954-bc256bbb90de
+	github.com/godror/godror v0.26.3
 	github.com/golang/groupcache v0.0.0-20210331224755-41bb18bfe9da // indirect
 	github.com/golang/protobuf v1.5.2
+	github.com/gomodule/redigo v1.8.5 // indirect
 	github.com/google/go-github/v37 v37.0.0
 	github.com/hashicorp/go-hclog v0.16.1
 	github.com/hashicorp/go-plugin v1.4.2
@@ -46,6 +49,6 @@ require (
 	golang.org/x/oauth2 v0.0.0-20210628180205-a41e5a781914
 	golang.org/x/sys v0.0.0-20210903071746-97244b99971b // indirect
 	google.golang.org/api v0.47.0
-	google.golang.org/protobuf v1.26.0
+	google.golang.org/protobuf v1.27.1
 	gopkg.in/yaml.v3 v3.0.0-20210107192922-496545a6307b
 )

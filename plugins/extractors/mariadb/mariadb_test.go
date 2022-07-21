@@ -8,7 +8,7 @@ import (
 	"database/sql"
 	"fmt"
 	_ "github.com/go-sql-driver/mysql"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/plugins/extractors/mariadb"
 	"github.com/odpf/meteor/test/mocks"
@@ -106,7 +106,7 @@ func TestExtract(t *testing.T) {
 
 		var urns []string
 		for _, record := range emitter.Get() {
-			table := record.Data().(*assetsv1beta1.Table)
+			table := record.Data().(*v1beta2.Asset)
 			urns = append(urns, table.Resource.Urn)
 
 		}

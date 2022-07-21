@@ -16,7 +16,7 @@ import (
 	"testing"
 	"time"
 
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/test/utils"
 
 	"github.com/odpf/meteor/plugins"

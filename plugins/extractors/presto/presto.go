@@ -11,7 +11,6 @@ import (
 	"github.com/odpf/meteor/models"
 	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
 	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
 
 	"github.com/odpf/meteor/plugins/sqlutil"
 
@@ -161,7 +160,7 @@ func (e *Extractor) getCatalogs() (list []string, err error) {
 }
 
 // processTable builds and push table to out channel
-func (e *Extractor) processTable(db *sql.DB, catalog string, database string, tableName string) (result *assetsv1beta1.Table, err error) {
+func (e *Extractor) processTable(db *sql.DB, catalog string, database string, tableName string) (result *v1beta2.Asset, err error) {
 	var columns []*facetsv1beta1.Column
 	columns, err = e.extractColumns(db, catalog)
 	if err != nil {

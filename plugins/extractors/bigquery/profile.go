@@ -1,13 +1,13 @@
 package bigquery
 
 import (
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins/extractors/bigquery/auditlog"
 )
 
-func (e *Extractor) buildTableProfile(tableURN string, tableStats *auditlog.TableStats) (tp *assetsv1beta1.TableProfile) {
+func (e *Extractor) buildTableProfile(tableURN string, tableStats *auditlog.TableStats) (tp *v1beta2.TableProfile) {
 	var tableUsage int64
-	var commonJoins []*assetsv1beta1.Join
+	var commonJoins []*v1beta2.TableCommonJoin
 	var filterConditions []string
 
 	if e.config.IsCollectTableUsage && tableStats != nil {
@@ -21,7 +21,7 @@ func (e *Extractor) buildTableProfile(tableURN string, tableStats *auditlog.Tabl
 				for jc := range jd.Conditions {
 					joinConditions = append(joinConditions, jc)
 				}
-				commonJoins = append(commonJoins, &assetsv1beta1.Join{
+				commonJoins = append(commonJoins, &v1beta2.TableCommonJoin{
 					Urn:        joinedTableURN,
 					Count:      jd.Usage,
 					Conditions: joinConditions,
@@ -37,10 +37,10 @@ func (e *Extractor) buildTableProfile(tableURN string, tableStats *auditlog.Tabl
 		}
 	}
 
-	tp = &assetsv1beta1.TableProfile{
-		UsageCount: tableUsage,
-		Joins:      commonJoins,
-		Filters:    filterConditions,
+	tp = &v1beta2.TableProfile{
+		UsageCount:  tableUsage,
+		CommonJoins: commonJoins,
+		Filters:     filterConditions,
 	}
 
 	return

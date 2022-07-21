@@ -18,12 +18,12 @@ import (
 	"github.com/odpf/meteor/test/utils"
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
+	"go.buf.build/odpf/gw/odpf/proton/odpf/assets"
 
 	"github.com/odpf/meteor/cmd"
 	"github.com/odpf/meteor/config"
 	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
 	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
 	_ "github.com/odpf/meteor/plugins/extractors"
 	_ "github.com/odpf/meteor/plugins/processors"
 	_ "github.com/odpf/meteor/plugins/sinks"
@@ -97,7 +97,7 @@ func TestMySqlToKafka(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var sinkData []*assetsv1beta1.Table
+	var sinkData []*v1beta2.Asset
 	ctx, cancel := context.WithCancel(context.TODO())
 	go func() {
 		err = listenToTopic(ctx, testTopic, &sinkData)
@@ -138,7 +138,7 @@ func TestMySqlToKafka(t *testing.T) {
 }
 
 // listenToTopic listens to a topic and stores the data in sinkData
-func listenToTopic(ctx context.Context, topic string, data *[]*assetsv1beta1.Table) error {
+func listenToTopic(ctx context.Context, topic string, data *[]*v1beta2.Asset) error {
 	reader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers: []string{brokerHost},
 		Topic:   topic,
@@ -297,8 +297,8 @@ func mysqlDockerSetup() (purge func() error, err error) {
 }
 
 // getExpectedTables returns the expected tables
-func getExpectedTables() []*assetsv1beta1.Table {
-	return []*assetsv1beta1.Table{
+func getExpectedTables() []*v1beta2.Asset {
+	return []*v1beta2.Asset{
 		{
 			Resource: &commonv1beta1.Resource{
 				Urn:  testDB + ".applicant",

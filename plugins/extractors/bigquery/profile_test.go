@@ -8,7 +8,7 @@ import (
 
 	"github.com/alecthomas/assert"
 	"github.com/odpf/meteor/models"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins/extractors/bigquery/auditlog"
 )
 

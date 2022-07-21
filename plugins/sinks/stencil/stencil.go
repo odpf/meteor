@@ -11,7 +11,6 @@ import (
 	"strings"
 
 	"github.com/odpf/meteor/models"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
 	"github.com/odpf/meteor/utils"
@@ -87,7 +86,7 @@ func (s *Sink) Sink(_ context.Context, batch []models.Record) (err error) {
 	for _, record := range batch {
 		metadata := record.Data()
 
-		table, ok := metadata.(*assetsv1beta1.Table)
+		table, ok := metadata.(*v1beta2.Asset)
 		if !ok {
 			continue
 		}
@@ -117,7 +116,7 @@ func (s *Sink) Sink(_ context.Context, batch []models.Record) (err error) {
 func (s *Sink) Close() (err error) { return }
 
 // buildJsonStencilPayload build json stencil payload
-func (s *Sink) buildJsonStencilPayload(table *assetsv1beta1.Table) (JsonSchema, error) {
+func (s *Sink) buildJsonStencilPayload(table *v1beta2.Asset) (JsonSchema, error) {
 	resource := table.GetResource()
 	jsonProperties := buildJsonProperties(table)
 
@@ -133,7 +132,7 @@ func (s *Sink) buildJsonStencilPayload(table *assetsv1beta1.Table) (JsonSchema, 
 }
 
 // buildAvroStencilPayload build Json stencil payload
-func (s *Sink) buildAvroStencilPayload(table *assetsv1beta1.Table) (AvroSchema, error) {
+func (s *Sink) buildAvroStencilPayload(table *v1beta2.Asset) (AvroSchema, error) {
 	resource := table.GetResource()
 	avroFields := buildAvroFields(table)
 
@@ -190,7 +189,7 @@ func (s *Sink) send(tableURN string, record interface{}) (err error) {
 }
 
 // buildJsonProperties builds the json schema properties
-func buildJsonProperties(table *assetsv1beta1.Table) map[string]JsonProperty {
+func buildJsonProperties(table *v1beta2.Asset) map[string]JsonProperty {
 	columnRecord := make(map[string]JsonProperty)
 	service := table.GetResource().GetService()
 	schema := table.GetSchema()
@@ -257,7 +256,7 @@ func typeToJsonSchemaType(service string, columnType string) (dataType JsonType)
 }
 
 // buildAvroFields builds the avro schema fields
-func buildAvroFields(table *assetsv1beta1.Table) (fields []AvroFields) {
+func buildAvroFields(table *v1beta2.Asset) (fields []AvroFields) {
 	service := table.GetResource().GetService()
 	schema := table.GetSchema()
 	if schema == nil {

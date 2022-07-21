@@ -29,7 +29,7 @@ func SetCustomProperties(metadata models.Metadata, customFields map[string]inter
 	}
 
 	switch metadata := metadata.(type) {
-	case *assetsv1beta1.Table:
+	case *v1beta2.Asset:
 		metadata.Properties = properties
 	case *assetsv1beta1.Topic:
 		metadata.Properties = properties

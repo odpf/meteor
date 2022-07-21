@@ -4,15 +4,14 @@ import (
 	"context"
 	_ "embed" // used to print the embedded assets
 	"encoding/json"
+	"fmt"
 	"html/template"
 	"strings"
 	"sync"
 
 	"cloud.google.com/go/bigquery"
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/plugins/extractors/bigquery/auditlog"
 	"github.com/odpf/meteor/registry"
@@ -21,6 +20,7 @@ import (
 	"github.com/pkg/errors"
 	"google.golang.org/api/iterator"
 	"google.golang.org/api/option"
+	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/structpb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
@@ -161,19 +161,28 @@ func (e *Extractor) extractTable(ctx context.Context, ds *bigquery.Dataset, emit
 			e.logger.Error("failed to get table, skipping table", "err", err)
 			continue
 		}
-		e.logger.Debug("extracting table", "table", table.FullyQualifiedName())
+
+		tableFQN := table.FullyQualifiedName()
+
+		e.logger.Debug("extracting table", "table", tableFQN)
 		tmd, err := table.Metadata(ctx)
 		if err != nil {
-			e.logger.Error("failed to fetch table metadata", "err", err, "table", table.FullyQualifiedName())
+			e.logger.Error("failed to fetch table metadata", "err", err, "table", tableFQN)
 			continue
 		}
 
-		emit(models.NewRecord(e.buildTable(ctx, table, tmd)))
+		asset, err := e.buildAsset(ctx, table, tmd)
+		if err != nil {
+			e.logger.Error("failed to build asset", "err", err, "table", tableFQN)
+			continue
+		}
+
+		emit(models.NewRecord(asset))
 	}
 }
 
 // Build the bigquery table metadata
-func (e *Extractor) buildTable(ctx context.Context, t *bigquery.Table, md *bigquery.TableMetadata) *assetsv1beta1.Table {
+func (e *Extractor) buildAsset(ctx context.Context, t *bigquery.Table, md *bigquery.TableMetadata) (asset *v1beta2.Asset, err error) {
 	var tableStats *auditlog.TableStats
 	if e.config.IsCollectTableUsage {
 		// Fetch and extract logs first to build a map
@@ -194,52 +203,53 @@ func (e *Extractor) buildTable(ctx context.Context, t *bigquery.Table, md *bigqu
 		partitionField = md.TimePartitioning.Field
 	}
 
-	var preview *facetsv1beta1.Preview
+	var previewFields []string
+	var previewRows *structpb.ListValue
 	if md.Type == bigquery.RegularTable {
 		var err error
-		preview, err = e.buildPreview(ctx, t)
+		previewFields, previewRows, err = e.buildPreview(ctx, t)
 		if err != nil {
 			e.logger.Warn("error building preview", "err", err, "table", tableFQN)
 		}
 	}
 
-	return &assetsv1beta1.Table{
-		Resource: &commonv1beta1.Resource{
-			Urn:         tableURN,
-			Name:        t.TableID,
-			Type:        "table",
-			Description: md.Description,
-			Service:     "bigquery",
-		},
-		Schema: &facetsv1beta1.Columns{
-			Columns: e.buildColumns(ctx, md),
-		},
-		Preview: preview,
-		Properties: &facetsv1beta1.Properties{
-			Attributes: utils.TryParseMapToProto(map[string]interface{}{
-				"full_qualified_name": tableFQN,
-				"dataset":             t.DatasetID,
-				"project":             t.ProjectID,
-				"type":                string(md.Type),
-				"partition_field":     partitionField,
-			}),
-			Labels: md.Labels,
-		},
-		Profile: tableProfile,
-		Timestamps: &commonv1beta1.Timestamp{
-			CreateTime: timestamppb.New(md.CreationTime),
-			UpdateTime: timestamppb.New(md.LastModifiedTime),
-		},
+	table, err := anypb.New(&v1beta2.Table{
+		Columns:       e.buildColumns(ctx, md),
+		PreviewFields: previewFields,
+		PreviewRows:   previewRows,
+		Profile:       tableProfile,
+	})
+	if err != nil {
+		err = fmt.Errorf("error creating Any struct: %w", err)
 	}
+
+	return &v1beta2.Asset{
+		Urn:         tableURN,
+		Name:        t.TableID,
+		Type:        "table",
+		Description: md.Description,
+		Service:     "bigquery",
+		Data:        table,
+		Attributes: utils.TryParseMapToProto(map[string]interface{}{
+			"full_qualified_name": tableFQN,
+			"dataset":             t.DatasetID,
+			"project":             t.ProjectID,
+			"type":                string(md.Type),
+			"partition_field":     partitionField,
+		}),
+		Labels:     md.Labels,
+		CreateTime: timestamppb.New(md.CreationTime),
+		UpdateTime: timestamppb.New(md.LastModifiedTime),
+	}, nil
 }
 
 // Extract table schema
-func (e *Extractor) buildColumns(ctx context.Context, tm *bigquery.TableMetadata) []*facetsv1beta1.Column {
+func (e *Extractor) buildColumns(ctx context.Context, tm *bigquery.TableMetadata) []*v1beta2.Column {
 	schema := tm.Schema
 	var wg sync.WaitGroup
 
 	wg.Add(len(schema))
-	columns := make([]*facetsv1beta1.Column, len(schema))
+	columns := make([]*v1beta2.Column, len(schema))
 	for i, b := range schema {
 		index := i
 		go func(s *bigquery.FieldSchema) {
@@ -253,17 +263,15 @@ func (e *Extractor) buildColumns(ctx context.Context, tm *bigquery.TableMetadata
 	return columns
 }
 
-func (e *Extractor) buildColumn(ctx context.Context, field *bigquery.FieldSchema, tm *bigquery.TableMetadata) (col *facetsv1beta1.Column) {
-	col = &facetsv1beta1.Column{
+func (e *Extractor) buildColumn(ctx context.Context, field *bigquery.FieldSchema, tm *bigquery.TableMetadata) (col *v1beta2.Column) {
+	col = &v1beta2.Column{
 		Name:        field.Name,
 		Description: field.Description,
 		DataType:    string(field.Type),
 		IsNullable:  !(field.Required || field.Repeated),
-		Properties: &facetsv1beta1.Properties{
-			Attributes: utils.TryParseMapToProto(map[string]interface{}{
-				"mode": e.getColumnMode(field),
-			}),
-		},
+		Attributes: utils.TryParseMapToProto(map[string]interface{}{
+			"mode": e.getColumnMode(field),
+		}),
 	}
 
 	if e.config.IncludeColumnProfile {
@@ -277,15 +285,12 @@ func (e *Extractor) buildColumn(ctx context.Context, field *bigquery.FieldSchema
 	return
 }
 
-func (e *Extractor) buildPreview(ctx context.Context, t *bigquery.Table) (preview *facetsv1beta1.Preview, err error) {
-	preview = &facetsv1beta1.Preview{
-		Fields: []string{},
-	}
+func (e *Extractor) buildPreview(ctx context.Context, t *bigquery.Table) (fields []string, rows *structpb.ListValue, err error) {
 	if e.config.MaxPreviewRows == 0 {
 		return
 	}
 
-	rows := []interface{}{}
+	tempRows := []interface{}{}
 	totalRows := 0
 	ri := t.Read(ctx)
 	for totalRows < e.config.MaxPreviewRows {
@@ -299,9 +304,9 @@ func (e *Extractor) buildPreview(ctx context.Context, t *bigquery.Table) (previe
 		}
 
 		// populate row fields once
-		if len(preview.Fields) < 1 {
+		if len(fields) < 1 {
 			for _, schema := range ri.Schema {
-				preview.Fields = append(preview.Fields, schema.Name)
+				fields = append(fields, schema.Name)
 			}
 		}
 
@@ -322,12 +327,12 @@ func (e *Extractor) buildPreview(ctx context.Context, t *bigquery.Table) (previe
 			return
 		}
 
-		rows = append(rows, temp)
+		tempRows = append(tempRows, temp)
 
 		totalRows++
 	}
 
-	preview.Rows, err = structpb.NewList(rows)
+	rows, err = structpb.NewList(tempRows)
 	if err != nil {
 		err = errors.Wrap(err, "error creating preview list")
 		return
@@ -336,7 +341,7 @@ func (e *Extractor) buildPreview(ctx context.Context, t *bigquery.Table) (previe
 	return
 }
 
-func (e *Extractor) getColumnProfile(ctx context.Context, col *bigquery.FieldSchema, tm *bigquery.TableMetadata) (cp *facetsv1beta1.ColumnProfile, err error) {
+func (e *Extractor) getColumnProfile(ctx context.Context, col *bigquery.FieldSchema, tm *bigquery.TableMetadata) (cp *v1beta2.ColumnProfile, err error) {
 	if col.Type == bigquery.BytesFieldType || col.Repeated || col.Type == bigquery.RecordFieldType {
 		e.logger.Info("Skip profiling " + col.Name + " column")
 		return
@@ -370,7 +375,7 @@ func (e *Extractor) getColumnProfile(ctx context.Context, col *bigquery.FieldSch
 	}
 
 	// map row data to column profile
-	cp = &facetsv1beta1.ColumnProfile{
+	cp = &v1beta2.ColumnProfile{
 		Min:    row.Min,
 		Max:    row.Max,
 		Avg:    row.Avg,

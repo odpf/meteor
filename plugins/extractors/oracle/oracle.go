@@ -7,10 +7,10 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins/sqlutil"
 
 	"github.com/odpf/meteor/plugins"
@@ -134,7 +134,7 @@ func (e *Extractor) getUserName(db *sql.DB) (userName string, err error) {
 
 // Prepares the list of tables and the attached metadata
 func (e *Extractor) getTableMetadata(db *sql.DB, dbName string, tableName string) (result *v1beta2.Asset, err error) {
-	var columns []*facetsv1beta1.Column
+	var columns []*v1beta2.Column
 	columns, err = e.getColumnMetadata(db, dbName, tableName)
 	if err != nil {
 		return result, nil
@@ -143,6 +143,10 @@ func (e *Extractor) getTableMetadata(db *sql.DB, dbName string, tableName string
 	// get table row count
 	sqlStr := `select count(*) from %s`
 	rows, err := db.Query(fmt.Sprintf(sqlStr, tableName))
+	if err != nil {
+		err = fmt.Errorf("error running query: %w", err)
+		return nil, err
+	}
 	var rowCount int64
 	for rows.Next() {
 		if err = rows.Scan(&rowCount); err != nil {
@@ -150,27 +154,29 @@ func (e *Extractor) getTableMetadata(db *sql.DB, dbName string, tableName string
 			continue
 		}
 	}
-
-	result = &assetsv1beta1.Table{
-		Resource: &commonv1beta1.Resource{
-			Urn:     fmt.Sprintf("%s.%s", dbName, tableName),
-			Name:    tableName,
-			Service: "Oracle",
-			Type:    "table",
-		},
-		Schema: &facetsv1beta1.Columns{
-			Columns: columns,
-		},
-		Profile: &assetsv1beta1.TableProfile{
+	table, err := anypb.New(&v1beta2.Table{
+		Columns: columns,
+		Profile: &v1beta2.TableProfile{
 			TotalRows: rowCount,
 		},
+	})
+	if err != nil {
+		err = fmt.Errorf("error creating Any struct: %w", err)
+		return nil, err
+	}
+	result = &v1beta2.Asset{
+		Urn:     fmt.Sprintf("%s.%s", dbName, tableName),
+		Name:    tableName,
+		Service: "Oracle",
+		Type:    "table",
+		Data:    table,
 	}
 
 	return
 }
 
 // Prepares the list of columns and the attached metadata
-func (e *Extractor) getColumnMetadata(db *sql.DB, dbName string, tableName string) (result []*facetsv1beta1.Column, err error) {
+func (e *Extractor) getColumnMetadata(db *sql.DB, dbName string, tableName string) (result []*v1beta2.Column, err error) {
 	sqlStr := `select utc.column_name, utc.data_type, 
 			decode(utc.char_used, 'C', utc.char_length, utc.data_length) as data_length,
 			utc.nullable, nvl(ucc.comments, '') as col_comment
@@ -195,7 +201,7 @@ func (e *Extractor) getColumnMetadata(db *sql.DB, dbName string, tableName strin
 			continue
 		}
 
-		result = append(result, &facetsv1beta1.Column{
+		result = append(result, &v1beta2.Column{
 			Name:        fieldName,
 			DataType:    dataType,
 			Description: fieldDesc.String,

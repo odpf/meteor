@@ -12,7 +12,7 @@ import (
 	"testing"
 
 	"github.com/dnaeon/go-vcr/v2/recorder"
-	"github.com/odpf/meteor/models"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/plugins/extractors/tableau"
 	"github.com/odpf/meteor/test/mocks"
@@ -100,7 +100,7 @@ func TestExtract(t *testing.T) {
 		assert.NoError(t, err)
 
 		records := emitter.Get()
-		var actuals []models.Metadata
+		var actuals []*v1beta2.Asset
 		for _, r := range records {
 			actuals = append(actuals, r.Data())
 		}

@@ -14,9 +14,9 @@ import (
 	"github.com/odpf/salt/log"
 	"github.com/snowflakedb/gosnowflake"
 	_ "github.com/snowflakedb/gosnowflake" // used to register the snowflake driver
+	"google.golang.org/protobuf/types/known/anypb"
 
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 )
 
 //go:embed README.md
@@ -160,30 +160,32 @@ func (e *Extractor) extractTables(database string) (err error) {
 
 // processTable builds and push table to out channel
 func (e *Extractor) processTable(database string, tableName string) (err error) {
-	var columns []*facetsv1beta1.Column
+	var columns []*v1beta2.Column
 	columns, err = e.extractColumns(database, tableName)
 	if err != nil {
 		return fmt.Errorf("failed to extract columns from %s.%s: %w", database, tableName, err)
 	}
-
+	data, err := anypb.New(&v1beta2.Table{
+		Columns: columns,
+	})
+	if err != nil {
+		err = fmt.Errorf("error creating Any struct: %w", err)
+		return err
+	}
 	// push table to channel
-	e.emit(models.NewRecord(&assetsv1beta1.Table{
-		Resource: &commonv1beta1.Resource{
-			Urn:     fmt.Sprintf("%s.%s", database, tableName),
-			Name:    tableName,
-			Service: "Snowflake",
-			Type:    "table",
-		},
-		Schema: &facetsv1beta1.Columns{
-			Columns: columns,
-		},
+	e.emit(models.NewRecord(&v1beta2.Asset{
+		Urn:     fmt.Sprintf("%s.%s", database, tableName),
+		Name:    tableName,
+		Service: "Snowflake",
+		Type:    "table",
+		Data:    data,
 	}))
 
 	return
 }
 
 // extractColumns extracts columns from a given table
-func (e *Extractor) extractColumns(database string, tableName string) (result []*facetsv1beta1.Column, err error) {
+func (e *Extractor) extractColumns(database string, tableName string) (result []*v1beta2.Column, err error) {
 	// extract columns
 	_, err = e.db.Exec(fmt.Sprintf("USE %s;", database))
 	if err != nil {
@@ -205,7 +207,7 @@ func (e *Extractor) extractColumns(database string, tableName string) (result []
 		if err = rows.Scan(&fieldName, &fieldDesc, &dataType, &isNullableString, &length); err != nil {
 			return nil, fmt.Errorf("failed to scan fields from query: %w", err)
 		}
-		result = append(result, &facetsv1beta1.Column{
+		result = append(result, &v1beta2.Column{
 			Name:        fieldName.String,
 			DataType:    dataType.String,
 			Description: fieldDesc.String,

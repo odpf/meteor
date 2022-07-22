@@ -1,60 +1,36 @@
 [
   {
-    "resource": {
-      "urn": "shield::shield:80/user-A",
-      "type": "user",
-      "name": "fullname-A",
-      "service": "shield",
-      "description": "sample description for user-A"
+    "urn": "shield::shield:80/user-A",
+    "type": "user",
+    "name": "fullname-A",
+    "service": "shield",
+    "description": "sample description for user-A",
+    "create_time": {
+      "seconds": 2400
     },
-    "email": "user1@gojek.com",
-    "username": "user-A",
-    "full_name": "fullname-A",
-    "status": "active",
-    "timestamps": {
-      "create_time": {
-        "seconds": 2400
-      },
-      "update_time": {
-        "seconds": 2100
-      }
+    "update_time": {
+      "seconds": 2100
     },
-    "memberships": [
-      {
-        "group_urn": "grpname-A:grpId-A",
-        "role": [
-          "role-A"
-        ]
-      }
-    ]
+    "data": {
+      "type_url": "type.googleapis.com/odpf.assets.v1beta2.User",
+      "value": "Gg91c2VyMUBnb2play5jb20iBnVzZXItQToKZnVsbG5hbWUtQVIGYWN0aXZlsgEbChFncnBuYW1lLUE6Z3JwSWQtQRIGcm9sZS1B"
+    }
   },
   {
-    "resource": {
-      "urn": "shield::shield:80/user-B",
-      "name": "fullname-B",
-      "service": "shield",
-      "type": "user",
-      "description": "sample description for user-B"
+    "urn": "shield::shield:80/user-B",
+    "name": "fullname-B",
+    "service": "shield",
+    "type": "user",
+    "description": "sample description for user-B",
+    "create_time": {
+      "seconds": 1200
     },
-    "email": "user2@gojek.com",
-    "username": "user-B",
-    "full_name": "fullname-B",
-    "status": "active",
-    "timestamps": {
-      "create_time": {
-        "seconds": 1200
-      },
-      "update_time": {
-        "seconds": 900
-      }
+    "update_time": {
+      "seconds": 900
     },
-    "memberships": [
-      {
-        "group_urn": "grpname-B:grpId-B",
-        "role": [
-          "role-B"
-        ]
-      }
-    ]
+    "data": {
+      "type_url": "type.googleapis.com/odpf.assets.v1beta2.User",
+      "value":"Gg91c2VyMkBnb2play5jb20iBnVzZXItQjoKZnVsbG5hbWUtQlIGYWN0aXZlsgEbChFncnBuYW1lLUI6Z3JwSWQtQhIGcm9sZS1C"
+    }
   }
 ]

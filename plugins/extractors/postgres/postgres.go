@@ -9,13 +9,13 @@ import (
 	"strings"
 
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/structpb"
 
 	// used to register the postgres driver
 	_ "github.com/lib/pq"
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins/sqlutil"
 
 	"github.com/odpf/meteor/plugins"
@@ -159,7 +159,7 @@ func (e *Extractor) Extract(ctx context.Context, emit plugins.Emit) (err error) 
 
 // Prepares the list of tables and the attached metadata
 func (e *Extractor) getTableMetadata(db *sql.DB, dbName string, tableName string) (result *v1beta2.Asset, err error) {
-	var columns []*facetsv1beta1.Column
+	var columns []*v1beta2.Column
 	columns, err = e.getColumnMetadata(db, dbName, tableName)
 	if err != nil {
 		return result, nil
@@ -169,27 +169,26 @@ func (e *Extractor) getTableMetadata(db *sql.DB, dbName string, tableName string
 	if err != nil {
 		return result, nil
 	}
-
-	result = &assetsv1beta1.Table{
-		Resource: &commonv1beta1.Resource{
-			Urn:     models.TableURN("postgres", e.config.Identifier, dbName, tableName),
-			Name:    tableName,
-			Service: "postgres",
-			Type:    "table",
-		},
-		Schema: &facetsv1beta1.Columns{
-			Columns: columns,
-		},
-		Properties: &facetsv1beta1.Properties{
-			Attributes: usrPrivilegeInfo,
-		},
+	table, err := anypb.New(&v1beta2.Table{
+		Columns: columns,
+	})
+	if err != nil {
+		err = fmt.Errorf("error creating Any struct: %w", err)
+		return nil, err
 	}
-
+	result = &v1beta2.Asset{
+		Urn:        models.TableURN("postgres", e.config.Identifier, dbName, tableName),
+		Name:       tableName,
+		Service:    "postgres",
+		Type:       "table",
+		Data:       table,
+		Attributes: usrPrivilegeInfo,
+	}
 	return
 }
 
 // Prepares the list of columns and the attached metadata
-func (e *Extractor) getColumnMetadata(db *sql.DB, dbName string, tableName string) (result []*facetsv1beta1.Column, err error) {
+func (e *Extractor) getColumnMetadata(db *sql.DB, dbName string, tableName string) (result []*v1beta2.Column, err error) {
 	sqlStr := `SELECT COLUMN_NAME,DATA_TYPE,
 				IS_NULLABLE,coalesce(CHARACTER_MAXIMUM_LENGTH,0)
 				FROM information_schema.columns
@@ -206,7 +205,7 @@ func (e *Extractor) getColumnMetadata(db *sql.DB, dbName string, tableName strin
 			e.logger.Error("failed to get fields", "error", err)
 			continue
 		}
-		result = append(result, &facetsv1beta1.Column{
+		result = append(result, &v1beta2.Column{
 			Name:       fieldName,
 			DataType:   dataType,
 			IsNullable: isNullable(isNullableString),

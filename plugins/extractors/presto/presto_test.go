@@ -7,7 +7,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
+	"log"
+	"os"
+	"testing"
+
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/plugins/extractors/presto"
 	"github.com/odpf/meteor/test/mocks"
@@ -16,9 +19,6 @@ import (
 	"github.com/ory/dockertest/v3/docker"
 	_ "github.com/prestodb/presto-go-client/presto"
 	"github.com/stretchr/testify/assert"
-	"log"
-	"os"
-	"testing"
 )
 
 const (
@@ -97,8 +97,8 @@ func TestExtract(t *testing.T) {
 
 		var urns []string
 		for _, record := range emitter.Get() {
-			table := record.Data().(*v1beta2.Asset)
-			urns = append(urns, table.Resource.Urn)
+			asset := record.Data()
+			urns = append(urns, asset.Urn)
 
 		}
 		assert.Equal(t, 30, len(urns))

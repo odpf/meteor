@@ -9,8 +9,8 @@ import (
 	"strings"
 
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/odpf/meteor/plugins/sqlutil"
 
@@ -161,30 +161,32 @@ func (e *Extractor) getCatalogs() (list []string, err error) {
 
 // processTable builds and push table to out channel
 func (e *Extractor) processTable(db *sql.DB, catalog string, database string, tableName string) (result *v1beta2.Asset, err error) {
-	var columns []*facetsv1beta1.Column
+	var columns []*v1beta2.Column
 	columns, err = e.extractColumns(db, catalog)
 	if err != nil {
 		return result, fmt.Errorf("failed to extract columns: %w", err)
 	}
-
+	table, err := anypb.New(&v1beta2.Table{
+		Columns: columns,
+	})
+	if err != nil {
+		err = fmt.Errorf("error creating Any struct: %w", err)
+		return nil, err
+	}
 	// push table to channel
-	result = &assetsv1beta1.Table{
-		Resource: &commonv1beta1.Resource{
-			Urn:     fmt.Sprintf("%s.%s.%s", catalog, database, tableName),
-			Name:    tableName,
-			Service: "presto",
-			Type:    "table",
-		},
-		Schema: &facetsv1beta1.Columns{
-			Columns: columns,
-		},
+	result = &v1beta2.Asset{
+		Urn:     fmt.Sprintf("%s.%s.%s", catalog, database, tableName),
+		Name:    tableName,
+		Service: "presto",
+		Type:    "table",
+		Data:    table,
 	}
 
 	return
 }
 
 // extractColumns extracts columns from a given table
-func (e *Extractor) extractColumns(db *sql.DB, catalog string) (result []*facetsv1beta1.Column, err error) {
+func (e *Extractor) extractColumns(db *sql.DB, catalog string) (result []*v1beta2.Column, err error) {
 	sqlStr := fmt.Sprintf(`SELECT COLUMN_NAME,DATA_TYPE,IS_NULLABLE,COMMENT
 				FROM %s.information_schema.columns
 				ORDER BY COLUMN_NAME ASC`, catalog)
@@ -200,7 +202,7 @@ func (e *Extractor) extractColumns(db *sql.DB, catalog string) (result []*facets
 			return nil, fmt.Errorf("failed to scan fields from query: %w", err)
 		}
 
-		result = append(result, &facetsv1beta1.Column{
+		result = append(result, &v1beta2.Column{
 			Name:        fieldName.String,
 			DataType:    dataType.String,
 			IsNullable:  isNullable(isNullableString.String),

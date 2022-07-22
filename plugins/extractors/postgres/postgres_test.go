@@ -11,11 +11,10 @@ import (
 	"testing"
 
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
 	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/test/utils"
 	ut "github.com/odpf/meteor/utils"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"database/sql"
 
@@ -104,7 +103,7 @@ func TestExtract(t *testing.T) {
 		err = extr.Extract(ctx, emitter.Push)
 		require.NoError(t, err)
 
-		assert.Equal(t, getExpected(), emitter.Get())
+		assert.Equal(t, getExpected(t), emitter.Get())
 	})
 }
 
@@ -145,75 +144,75 @@ func execute(db *sql.DB, queries []string) (err error) {
 	return
 }
 
-func getExpected() []models.Record {
+func getExpected(t *testing.T) []models.Record {
+	data1, err := anypb.New(&v1beta2.Table{
+		Columns: []*v1beta2.Column{
+			{
+				Name:       "id",
+				DataType:   "bigint",
+				IsNullable: false,
+				Length:     0,
+			},
+			{
+				Name:       "name",
+				DataType:   "character varying",
+				IsNullable: false,
+				Length:     20,
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(fmt.Println(err, "failed to build Any struct"))
+	}
+	data2, err := anypb.New(&v1beta2.Table{
+		Columns: []*v1beta2.Column{
+			{
+				Name:       "id",
+				DataType:   "bigint",
+				IsNullable: false,
+				Length:     0,
+			},
+			{
+				Name:       "title",
+				DataType:   "character varying",
+				IsNullable: false,
+				Length:     20,
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(fmt.Println(err, "failed to build Any struct"))
+	}
 	return []models.Record{
-		models.NewRecord(&assetsv1beta1.Table{
-			Resource: &commonv1beta1.Resource{
-				Urn:     "postgres::my-postgres/test_db/article",
-				Name:    "article",
-				Service: "postgres",
-				Type:    "table",
-			},
-			Schema: &facetsv1beta1.Columns{
-				Columns: []*facetsv1beta1.Column{
-					{
-						Name:       "id",
-						DataType:   "bigint",
-						IsNullable: false,
-						Length:     0,
-					},
-					{
-						Name:       "name",
-						DataType:   "character varying",
-						IsNullable: false,
-						Length:     20,
+		models.NewRecord(&v1beta2.Asset{
+			Urn:     "postgres::my-postgres/test_db/article",
+			Name:    "article",
+			Service: "postgres",
+			Type:    "table",
+			Data:    data1,
+			Attributes: ut.TryParseMapToProto(map[string]interface{}{
+				"grants": []interface{}{
+					map[string]interface{}{
+						"user":            "test_user",
+						"privilege_types": []interface{}{"INSERT", "SELECT", "UPDATE", "DELETE", "TRUNCATE", "REFERENCES", "TRIGGER"},
 					},
 				},
-			},
-			Properties: &facetsv1beta1.Properties{
-				Attributes: ut.TryParseMapToProto(map[string]interface{}{
-					"grants": []interface{}{
-						map[string]interface{}{
-							"user":            "test_user",
-							"privilege_types": []interface{}{"INSERT", "SELECT", "UPDATE", "DELETE", "TRUNCATE", "REFERENCES", "TRIGGER"},
-						},
-					},
-				}),
-			},
+			}),
 		}),
-		models.NewRecord(&assetsv1beta1.Table{
-			Resource: &commonv1beta1.Resource{
-				Urn:     "postgres::my-postgres/test_db/post",
-				Name:    "post",
-				Service: "postgres",
-				Type:    "table",
-			},
-			Schema: &facetsv1beta1.Columns{
-				Columns: []*facetsv1beta1.Column{
-					{
-						Name:       "id",
-						DataType:   "bigint",
-						IsNullable: false,
-						Length:     0,
-					},
-					{
-						Name:       "title",
-						DataType:   "character varying",
-						IsNullable: false,
-						Length:     20,
+		models.NewRecord(&v1beta2.Asset{
+			Urn:     "postgres::my-postgres/test_db/post",
+			Name:    "post",
+			Service: "postgres",
+			Type:    "table",
+			Data:    data2,
+			Attributes: ut.TryParseMapToProto(map[string]interface{}{
+				"grants": []interface{}{
+					map[string]interface{}{
+						"user":            "test_user",
+						"privilege_types": []interface{}{"INSERT", "SELECT", "UPDATE", "DELETE", "TRUNCATE", "REFERENCES", "TRIGGER"},
 					},
 				},
-			},
-			Properties: &facetsv1beta1.Properties{
-				Attributes: ut.TryParseMapToProto(map[string]interface{}{
-					"grants": []interface{}{
-						map[string]interface{}{
-							"user":            "test_user",
-							"privilege_types": []interface{}{"INSERT", "SELECT", "UPDATE", "DELETE", "TRUNCATE", "REFERENCES", "TRIGGER"},
-						},
-					},
-				}),
-			},
+			}),
 		}),
 	}
 }

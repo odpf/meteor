@@ -7,13 +7,13 @@ import (
 	"net/http"
 
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
 	"github.com/odpf/meteor/utils"
 	"github.com/odpf/salt/log"
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
 
@@ -130,65 +130,59 @@ func (e *Extractor) Extract(ctx context.Context, emit plugins.Emit) (err error) 
 	return
 }
 
-func (e *Extractor) buildDashboard(wb *Workbook) (data *assetsv1beta1.Dashboard, err error) {
+func (e *Extractor) buildDashboard(wb *Workbook) (asset *v1beta2.Asset, err error) {
 	lineages := e.buildLineage(wb.UpstreamTables)
 	dashboardURN := models.DashboardURN("tableau", e.config.Identifier, fmt.Sprintf("workbook/%s", wb.ID))
-	data = &assetsv1beta1.Dashboard{
-		Resource: &commonv1beta1.Resource{
-			Urn:         dashboardURN,
-			Name:        wb.Name,
-			Service:     "tableau",
-			Type:        "dashboard",
-			Description: wb.Description,
-		},
+	data, err := anypb.New(&v1beta2.Dashboard{
 		Charts: e.buildCharts(dashboardURN, wb, lineages),
-		Properties: &facetsv1beta1.Properties{
-			Attributes: utils.TryParseMapToProto(map[string]interface{}{
-				"id":           wb.ID,
-				"name":         wb.Name,
-				"project_name": wb.ProjectName,
-				"uri":          wb.URI,
-				"owner_id":     wb.Owner.ID,
-				"owner_name":   wb.Owner.Name,
-				"owner_email":  wb.Owner.Email,
-			}),
-		},
-		Ownership: &facetsv1beta1.Ownership{
-			Owners: []*facetsv1beta1.Owner{
-				{
-					Urn:   wb.Owner.Email,
-					Name:  wb.Owner.Name,
-					Email: wb.Owner.Email,
-				},
+	})
+	if err != nil {
+		return nil, err
+	}
+	asset = &v1beta2.Asset{
+		Urn:         dashboardURN,
+		Name:        wb.Name,
+		Service:     "tableau",
+		Type:        "dashboard",
+		Description: wb.Description,
+		Data:        data,
+		Attributes: utils.TryParseMapToProto(map[string]interface{}{
+			"id":           wb.ID,
+			"name":         wb.Name,
+			"project_name": wb.ProjectName,
+			"uri":          wb.URI,
+			"owner_id":     wb.Owner.ID,
+			"owner_name":   wb.Owner.Name,
+			"owner_email":  wb.Owner.Email,
+		}),
+		Owners: []*v1beta2.Owner{
+			{
+				Urn:   wb.Owner.Email,
+				Name:  wb.Owner.Name,
+				Email: wb.Owner.Email,
 			},
 		},
-		Lineage: lineages,
-		Timestamps: &commonv1beta1.Timestamp{
-			CreateTime: timestamppb.New(wb.CreatedAt),
-			UpdateTime: timestamppb.New(wb.UpdatedAt),
-		},
+		Lineage:    lineages,
+		CreateTime: timestamppb.New(wb.CreatedAt),
+		UpdateTime: timestamppb.New(wb.UpdatedAt),
 	}
 	return
 }
 
-func (e *Extractor) buildCharts(dashboardURN string, wb *Workbook, lineages *facetsv1beta1.Lineage) (charts []*assetsv1beta1.Chart) {
+func (e *Extractor) buildCharts(dashboardURN string, wb *Workbook, lineages *v1beta2.Lineage) (charts []*v1beta2.Chart) {
 	for _, sh := range wb.Sheets {
 		chartURN := models.DashboardURN("tableau", e.config.Identifier, fmt.Sprintf("sheet/%s", sh.ID))
-		charts = append(charts, &assetsv1beta1.Chart{
+		charts = append(charts, &v1beta2.Chart{
 			Urn:          chartURN,
 			Name:         sh.Name,
 			DashboardUrn: dashboardURN,
 			Source:       "tableau",
-			Properties: &facetsv1beta1.Properties{
-				Attributes: utils.TryParseMapToProto(map[string]interface{}{
-					"id":   sh.ID,
-					"name": sh.Name,
-				}),
-			},
-			Timestamps: &commonv1beta1.Timestamp{
-				CreateTime: timestamppb.New(sh.CreatedAt),
-				UpdateTime: timestamppb.New(sh.UpdatedAt),
-			},
+			Attributes: utils.TryParseMapToProto(map[string]interface{}{
+				"id":   sh.ID,
+				"name": sh.Name,
+			}),
+			CreateTime: timestamppb.New(sh.CreatedAt),
+			UpdateTime: timestamppb.New(sh.UpdatedAt),
 		})
 	}
 	return

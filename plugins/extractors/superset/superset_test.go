@@ -16,7 +16,6 @@ import (
 	"testing"
 	"time"
 
-	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/test/utils"
 
 	"github.com/odpf/meteor/plugins"
@@ -173,8 +172,8 @@ func TestExtract(t *testing.T) {
 
 		var urns []string
 		for _, record := range emitter.Get() {
-			dashboard := record.Data().(*assetsv1beta1.Dashboard)
-			urns = append(urns, dashboard.Resource.Urn)
+			asset := record.Data()
+			urns = append(urns, asset.Urn)
 		}
 		assert.Equal(t, 4, len(urns))
 	})

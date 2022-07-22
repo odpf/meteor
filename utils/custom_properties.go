@@ -1,16 +1,14 @@
 package utils
 
 import (
-	"github.com/odpf/meteor/models"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/pkg/errors"
 	"google.golang.org/protobuf/types/known/structpb"
 )
 
 // GetCustomProperties returns custom properties of the given asset
-func GetCustomProperties(metadata models.Metadata) map[string]interface{} {
-	customProps := metadata.GetProperties()
+func GetCustomProperties(asset *v1beta2.Asset) map[string]interface{} {
+	customProps := asset.Attributes
 
 	// if data's custom facet is nil, return new empty custom properties
 	if customProps == nil {
@@ -18,51 +16,32 @@ func GetCustomProperties(metadata models.Metadata) map[string]interface{} {
 	}
 
 	// return custom fields as map
-	return parseToMap(customProps.Attributes)
+	return parseToMap(customProps)
 }
 
 // SetCustomProperties sets custom properties of the given asset
-func SetCustomProperties(metadata models.Metadata, customFields map[string]interface{}) (models.Metadata, error) {
-	properties, err := appendCustomFields(metadata, customFields)
+func SetCustomProperties(asset *v1beta2.Asset, customFields map[string]interface{}) (*v1beta2.Asset, error) {
+	record, err := appendCustomFields(asset, customFields)
 	if err != nil {
-		return metadata, errors.Wrap(err, "failed to append custom fields in metadata")
+		return asset, errors.Wrap(err, "failed to append custom fields in asset")
 	}
-
-	switch metadata := metadata.(type) {
-	case *v1beta2.Asset:
-		metadata.Properties = properties
-	case *assetsv1beta1.Topic:
-		metadata.Properties = properties
-	case *assetsv1beta1.Dashboard:
-		metadata.Properties = properties
-	case *assetsv1beta1.Bucket:
-		metadata.Properties = properties
-	case *assetsv1beta1.Group:
-		metadata.Properties = properties
-	case *assetsv1beta1.Job:
-		metadata.Properties = properties
-	case *assetsv1beta1.User:
-		metadata.Properties = properties
-	}
-
-	return metadata, nil
+	asset.Attributes = record.Attributes
+	return asset, nil
 }
 
-func appendCustomFields(metadata models.Metadata, customFields map[string]interface{}) (*facetsv1beta1.Properties, error) {
-	properties := metadata.GetProperties()
-	if properties == nil {
-		properties = &facetsv1beta1.Properties{
-			Attributes: &structpb.Struct{},
-		}
+func appendCustomFields(asset *v1beta2.Asset, customFields map[string]interface{}) (*v1beta2.Asset, error) {
+	record := asset
+	if record.Attributes == nil {
+		record.Attributes = &structpb.Struct{}
 	}
 
 	protoStruct, err := parseMapToProto(customFields)
 	if err != nil {
-		return properties, errors.Wrap(err, "failed to parse map to proto")
+		return record, errors.Wrap(err, "failed to parse map to proto")
 	}
-	properties.Attributes = protoStruct
+	record.Attributes = protoStruct
 
-	return properties, err
+	return record, err
 }
 
 func parseToMap(src *structpb.Struct) map[string]interface{} {

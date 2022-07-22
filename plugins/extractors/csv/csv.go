@@ -11,11 +11,11 @@ import (
 	"path/filepath"
 
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/registry"
 	"github.com/odpf/meteor/utils"
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"encoding/csv"
 
@@ -94,7 +94,7 @@ func (e *Extractor) Extract(ctx context.Context, emit plugins.Emit) (err error) 
 	return
 }
 
-func (e *Extractor) buildTable(filePath string) (table *v1beta2.Asset, err error) {
+func (e *Extractor) buildTable(filePath string) (asset *v1beta2.Asset, err error) {
 	file, err := os.Open(filePath)
 	if err != nil {
 		err = errors.New("unable to open the csv file")
@@ -112,17 +112,20 @@ func (e *Extractor) buildTable(filePath string) (table *v1beta2.Asset, err error
 		return
 	}
 
+	table, err := anypb.New(&v1beta2.Table{
+		Columns: e.buildColumns(content),
+	})
+	if err != nil {
+		err = fmt.Errorf("error creating Any struct for test: %w", err)
+		return
+	}
 	fileName := stat.Name()
-	table = &assetsv1beta1.Table{
-		Resource: &commonv1beta1.Resource{
-			Urn:     fileName,
-			Name:    fileName,
-			Service: "csv",
-			Type:    "table",
-		},
-		Schema: &facetsv1beta1.Columns{
-			Columns: e.buildColumns(content),
-		},
+	asset = &v1beta2.Asset{
+		Urn:     fileName,
+		Name:    fileName,
+		Service: "csv",
+		Type:    "table",
+		Data:    table,
 	}
 	return
 }
@@ -133,9 +136,9 @@ func (e *Extractor) readCSVFile(r io.Reader) (columns []string, err error) {
 	return reader.Read()
 }
 
-func (e *Extractor) buildColumns(csvColumns []string) (result []*facetsv1beta1.Column) {
+func (e *Extractor) buildColumns(csvColumns []string) (result []*v1beta2.Column) {
 	for _, singleColumn := range csvColumns {
-		result = append(result, &facetsv1beta1.Column{
+		result = append(result, &v1beta2.Column{
 			Name: singleColumn,
 		})
 	}

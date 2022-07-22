@@ -9,12 +9,12 @@ import (
 	_ "github.com/go-kivik/couchdb"
 	"github.com/go-kivik/kivik"
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
 	"github.com/odpf/meteor/utils"
 	"github.com/odpf/salt/log"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 //go:embed README.md
@@ -130,29 +130,31 @@ func (e *Extractor) extractTables(ctx context.Context, dbName string) (err error
 
 // Build and push document to output channel
 func (e *Extractor) processTable(ctx context.Context, dbName string, docID string) (err error) {
-	var columns []*facetsv1beta1.Column
+	var columns []*v1beta2.Column
 	columns, err = e.extractColumns(ctx, docID)
 	if err != nil {
 		return
 	}
-
+	table, err := anypb.New(&v1beta2.Table{
+		Columns: columns,
+	})
+	if err != nil {
+		err = fmt.Errorf("error creating Any struct for test: %w", err)
+		return err
+	}
 	// push table to channel
-	e.emit(models.NewRecord(&assetsv1beta1.Table{
-		Resource: &commonv1beta1.Resource{
-			Urn:  fmt.Sprintf("%s.%s", dbName, docID),
-			Name: docID,
-			Type: "table",
-		},
-		Schema: &facetsv1beta1.Columns{
-			Columns: columns,
-		},
+	e.emit(models.NewRecord(&v1beta2.Asset{
+		Urn:  fmt.Sprintf("%s.%s", dbName, docID),
+		Name: docID,
+		Type: "table",
+		Data: table,
 	}))
 
 	return
 }
 
 // Extract columns from a given table
-func (e *Extractor) extractColumns(ctx context.Context, docID string) (columns []*facetsv1beta1.Column, err error) {
+func (e *Extractor) extractColumns(ctx context.Context, docID string) (columns []*v1beta2.Column, err error) {
 	size, rev, err := e.db.GetMeta(ctx, docID)
 	if err != nil {
 		return
@@ -169,7 +171,7 @@ func (e *Extractor) extractColumns(ctx context.Context, docID string) (columns [
 			continue
 		}
 
-		columns = append(columns, &facetsv1beta1.Column{
+		columns = append(columns, &v1beta2.Column{
 			Name:        k,
 			DataType:    reflect.ValueOf(fields[k]).Kind().String(),
 			Description: rev,

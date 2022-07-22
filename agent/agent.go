@@ -152,7 +152,7 @@ func (r *Agent) Run(ctx context.Context, recipe recipe.Recipe) (run Run) {
 	// to gather total number of records extracted
 	stream.setMiddleware(func(src models.Record) (models.Record, error) {
 		recordCount++
-		r.logger.Info("Successfully extracted record", "record", src.Data().GetResource().Urn, "recipe", recipe.Name)
+		r.logger.Info("Successfully extracted record", "record", src.Data().Urn, "recipe", recipe.Name)
 		return src, nil
 	})
 

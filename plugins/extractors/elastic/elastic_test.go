@@ -14,12 +14,11 @@ import (
 	"testing"
 
 	"github.com/odpf/meteor/test/utils"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/elastic/go-elasticsearch/esapi"
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
 	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/plugins/extractors/elastic"
@@ -127,7 +126,7 @@ func TestExtract(t *testing.T) {
 		emitter := mocks.NewEmitter()
 		err = extr.Extract(ctx, emitter.Push)
 		assert.NoError(t, err)
-		matchRecords(t, getExpectedVal(), emitter.Get())
+		matchRecords(t, getExpectedVal(t), emitter.Get())
 	})
 }
 
@@ -185,49 +184,53 @@ func newExtractor() *elastic.Extractor {
 	return elastic.New(utils.Logger)
 }
 
-func getExpectedVal() []models.Record {
+func getExpectedVal(t *testing.T) []models.Record {
+	table1, err := anypb.New(&v1beta2.Table{
+		Columns: []*v1beta2.Column{
+			{
+				Name:     "SomeStr",
+				DataType: "text",
+			},
+		},
+		Profile: &v1beta2.TableProfile{
+			TotalRows: 1,
+		},
+	})
+	if err != nil {
+		t.Fatal("error creating Any struct for test: %w", err)
+	}
+	table2, err := anypb.New(&v1beta2.Table{
+		Columns: []*v1beta2.Column{
+			{
+				Name:     "SomeStr",
+				DataType: "text",
+			},
+		},
+		Profile: &v1beta2.TableProfile{
+			TotalRows: 1,
+		},
+	})
+	if err != nil {
+		t.Fatal("error creating Any struct for test: %w", err)
+	}
 	return []models.Record{
-		models.NewRecord(&assetsv1beta1.Table{
-			Resource: &commonv1beta1.Resource{
-				Urn:  "elasticsearch.index1",
-				Name: "index1",
-				Type: "table",
-			},
-			Schema: &facetsv1beta1.Columns{
-				Columns: []*facetsv1beta1.Column{
-					{
-						Name:     "SomeStr",
-						DataType: "text",
-					},
-				},
-			},
-			Profile: &assetsv1beta1.TableProfile{
-				TotalRows: 1,
-			},
+		models.NewRecord(&v1beta2.Asset{
+			Urn:  "elasticsearch.index1",
+			Name: "index1",
+			Type: "table",
+			Data: table1,
 		}),
-		models.NewRecord(&assetsv1beta1.Table{
-			Resource: &commonv1beta1.Resource{
-				Urn:  "elasticsearch.index2",
-				Name: "index2",
-				Type: "table",
-			},
-			Schema: &facetsv1beta1.Columns{
-				Columns: []*facetsv1beta1.Column{
-					{
-						Name:     "SomeStr",
-						DataType: "text",
-					},
-				},
-			},
-			Profile: &assetsv1beta1.TableProfile{
-				TotalRows: 1,
-			},
+		models.NewRecord(&v1beta2.Asset{
+			Urn:  "elasticsearch.index2",
+			Name: "index2",
+			Type: "table",
+			Data: table2,
 		}),
 	}
 }
 
 func matchRecords(t *testing.T, expected, actual []models.Record) {
-	if actual[0].Data().GetResource().Name == "index2" {
+	if actual[0].Data().Name == "index2" {
 		//swap index order
 		temp := actual[0]
 		actual[0] = actual[1]

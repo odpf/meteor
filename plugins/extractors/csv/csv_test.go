@@ -8,10 +8,9 @@ import (
 	"testing"
 
 	"github.com/odpf/meteor/test/utils"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
 	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/plugins/extractors/csv"
@@ -43,22 +42,23 @@ func TestExtract(t *testing.T) {
 		emitter := mocks.NewEmitter()
 		err = extr.Extract(ctx, emitter.Push)
 		assert.NoError(t, err)
-
+		table, err := anypb.New(&v1beta2.Table{
+			Columns: []*v1beta2.Column{
+				{Name: "name"},
+				{Name: "age"},
+				{Name: "phone"},
+			},
+		})
+		if err != nil {
+			t.Fatal("error creating Any struct for test: %w", err)
+		}
 		expected := []models.Record{
-			models.NewRecord(&assetsv1beta1.Table{
-				Resource: &commonv1beta1.Resource{
-					Urn:     "test.csv",
-					Name:    "test.csv",
-					Service: "csv",
-					Type:    "table",
-				},
-				Schema: &facetsv1beta1.Columns{
-					Columns: []*facetsv1beta1.Column{
-						{Name: "name"},
-						{Name: "age"},
-						{Name: "phone"},
-					},
-				},
+			models.NewRecord(&v1beta2.Asset{
+				Urn:     "test.csv",
+				Name:    "test.csv",
+				Service: "csv",
+				Type:    "table",
+				Data:    table,
 			}),
 		}
 
@@ -78,37 +78,40 @@ func TestExtract(t *testing.T) {
 		emitter := mocks.NewEmitter()
 		err = extr.Extract(ctx, emitter.Push)
 		assert.NoError(t, err)
-
+		table1, err := anypb.New(&v1beta2.Table{
+			Columns: []*v1beta2.Column{
+				{Name: "order"},
+				{Name: "transaction_id"},
+				{Name: "total_price"},
+			},
+		})
+		if err != nil {
+			t.Fatal("error creating Any struct for test: %w", err)
+		}
+		table2, err := anypb.New(&v1beta2.Table{
+			Columns: []*v1beta2.Column{
+				{Name: "name"},
+				{Name: "age"},
+				{Name: "phone"},
+			},
+		})
+		if err != nil {
+			t.Fatal("error creating Any struct for test: %w", err)
+		}
 		expected := []models.Record{
-			models.NewRecord(&assetsv1beta1.Table{
-				Resource: &commonv1beta1.Resource{
-					Urn:     "test-2.csv",
-					Name:    "test-2.csv",
-					Service: "csv",
-					Type:    "table",
-				},
-				Schema: &facetsv1beta1.Columns{
-					Columns: []*facetsv1beta1.Column{
-						{Name: "order"},
-						{Name: "transaction_id"},
-						{Name: "total_price"},
-					},
-				},
+			models.NewRecord(&v1beta2.Asset{
+				Urn:     "test-2.csv",
+				Name:    "test-2.csv",
+				Service: "csv",
+				Type:    "table",
+				Data:    table1,
 			}),
-			models.NewRecord(&assetsv1beta1.Table{
-				Resource: &commonv1beta1.Resource{
-					Urn:     "test.csv",
-					Name:    "test.csv",
-					Service: "csv",
-					Type:    "table",
-				},
-				Schema: &facetsv1beta1.Columns{
-					Columns: []*facetsv1beta1.Column{
-						{Name: "name"},
-						{Name: "age"},
-						{Name: "phone"},
-					},
-				},
+			models.NewRecord(&v1beta2.Asset{
+				Urn:     "test.csv",
+				Name:    "test.csv",
+				Service: "csv",
+				Type:    "table",
+				Data:    table2,
 			}),
 		}
 		assert.Equal(t, expected, emitter.Get())

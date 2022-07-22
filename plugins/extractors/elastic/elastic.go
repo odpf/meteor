@@ -8,11 +8,11 @@ import (
 	"reflect"
 
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/elastic/go-elasticsearch/v8"
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
 	"github.com/odpf/meteor/utils"
@@ -107,9 +107,9 @@ func (e *Extractor) Extract(ctx context.Context, emit plugins.Emit) (err error) 
 			err = err1
 			return
 		}
-		var columns []*facetsv1beta1.Column
+		var columns []*v1beta2.Column
 		for i := range docProperties {
-			columns = append(columns, &facetsv1beta1.Column{
+			columns = append(columns, &v1beta2.Column{
 				Name:     i,
 				DataType: docProperties[i].(map[string]interface{})["type"].(string),
 			})
@@ -128,19 +128,21 @@ func (e *Extractor) Extract(ctx context.Context, emit plugins.Emit) (err error) 
 			return
 		}
 		docCount := len(t["hits"].(map[string]interface{})["hits"].([]interface{}))
-
-		emit(models.NewRecord(&assetsv1beta1.Table{
-			Resource: &commonv1beta1.Resource{
-				Urn:  fmt.Sprintf("%s.%s", "elasticsearch", indexName),
-				Name: indexName,
-				Type: "table",
-			},
-			Schema: &facetsv1beta1.Columns{
-				Columns: columns,
-			},
-			Profile: &assetsv1beta1.TableProfile{
+		table, err := anypb.New(&v1beta2.Table{
+			Columns: columns,
+			Profile: &v1beta2.TableProfile{
 				TotalRows: int64(docCount),
 			},
+		})
+		if err != nil {
+			err = fmt.Errorf("error creating Any struct for test: %w", err)
+			return err
+		}
+		emit(models.NewRecord(&v1beta2.Asset{
+			Urn:  fmt.Sprintf("%s.%s", "elasticsearch", indexName),
+			Name: indexName,
+			Type: "table",
+			Data: table,
 		}))
 	}
 	return

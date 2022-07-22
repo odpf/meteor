@@ -5,10 +5,11 @@ import (
 	_ "embed" // used to print the embedded assets
 
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/google/go-github/v37/github"
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
 	"github.com/odpf/meteor/utils"
@@ -81,15 +82,20 @@ func (e *Extractor) Extract(ctx context.Context, emit plugins.Emit) (err error) 
 			e.logger.Error("failed to fetch user", "error", err)
 			continue
 		}
-		emit(models.NewRecord(&assetsv1beta1.User{
-			Resource: &commonv1beta1.Resource{
-				Urn:  usr.GetURL(),
-				Type: "user",
-			},
+		u, err := anypb.New(&v1beta2.User{
 			Email:    usr.GetEmail(),
 			Username: usr.GetLogin(),
 			FullName: usr.GetName(),
 			Status:   "active",
+		})
+		if err != nil {
+			e.logger.Error("error creating Any struct: %w", err)
+			continue
+		}
+		emit(models.NewRecord(&v1beta2.Asset{
+			Urn:  usr.GetURL(),
+			Type: "user",
+			Data: u,
 		}))
 	}
 

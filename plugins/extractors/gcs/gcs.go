@@ -8,9 +8,9 @@ import (
 	"github.com/pkg/errors"
 
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/registry"
+	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"cloud.google.com/go/storage"
@@ -107,21 +107,24 @@ func (e *Extractor) Extract(ctx context.Context, emit plugins.Emit) (err error) 
 			return errors.Wrapf(err, "failed to iterate over %s", bucket.Name)
 		}
 
-		var blobs []*assetsv1beta1.Blob
+		var blobs []*v1beta2.Blob
 		if e.config.ExtractBlob {
 			blobs, err = e.extractBlobs(ctx, bucket.Name, e.config.ProjectID)
 			if err != nil {
 				return errors.Wrapf(err, "failed to extract blobs from %s", bucket.Name)
 			}
 		}
-
-		emit(models.NewRecord(e.buildBucket(bucket, e.config.ProjectID, blobs)))
+		asset, err := e.buildBucket(bucket, e.config.ProjectID, blobs)
+		if err != nil {
+			return errors.Wrapf(err, "failed to build bucket")
+		}
+		emit(models.NewRecord(asset))
 	}
 
 	return
 }
 
-func (e *Extractor) extractBlobs(ctx context.Context, bucketName string, projectID string) (blobs []*assetsv1beta1.Blob, err error) {
+func (e *Extractor) extractBlobs(ctx context.Context, bucketName string, projectID string) (blobs []*v1beta2.Blob, err error) {
 	it := e.client.Bucket(bucketName).Objects(ctx, nil)
 
 	object, err := it.Next()
@@ -136,46 +139,42 @@ func (e *Extractor) extractBlobs(ctx context.Context, bucketName string, project
 	return
 }
 
-func (e *Extractor) buildBucket(b *storage.BucketAttrs, projectID string, blobs []*assetsv1beta1.Blob) (bucket *assetsv1beta1.Bucket) {
-	bucket = &assetsv1beta1.Bucket{
-		Resource: &commonv1beta1.Resource{
-			Urn:     fmt.Sprintf("%s/%s", projectID, b.Name),
-			Name:    b.Name,
-			Service: metadataSource,
-			Type:    "bucket",
-		},
+func (e *Extractor) buildBucket(b *storage.BucketAttrs, projectID string, blobs []*v1beta2.Blob) (asset *v1beta2.Asset, err error) {
+	bucket := &v1beta2.Bucket{
 		Location:    b.Location,
 		StorageType: b.StorageClass,
-		Timestamps: &commonv1beta1.Timestamp{
-			CreateTime: timestamppb.New(b.Created),
-		},
-		Properties: &facetsv1beta1.Properties{
-			Labels: b.Labels,
-		},
 	}
 	if blobs != nil {
 		bucket.Blobs = blobs
 	}
-
+	buck, err := anypb.New(bucket)
+	if err != nil {
+		return nil, err
+	}
+	asset = &v1beta2.Asset{
+		Urn:        fmt.Sprintf("%s/%s", projectID, b.Name),
+		Name:       b.Name,
+		Service:    metadataSource,
+		Type:       "bucket",
+		CreateTime: timestamppb.New(b.Created),
+		Labels:     b.Labels,
+		Data:       buck,
+	}
 	return
 }
 
-func (e *Extractor) buildBlob(blob *storage.ObjectAttrs, projectID string) *assetsv1beta1.Blob {
-	return &assetsv1beta1.Blob{
+func (e *Extractor) buildBlob(blob *storage.ObjectAttrs, projectID string) *v1beta2.Blob {
+	return &v1beta2.Blob{
 		Urn:        fmt.Sprintf("%s/%s/%s", projectID, blob.Bucket, blob.Name),
 		Name:       blob.Name,
 		Size:       blob.Size,
 		DeleteTime: timestamppb.New(blob.Deleted),
 		ExpireTime: timestamppb.New(blob.RetentionExpirationTime),
-		Ownership: &facetsv1beta1.Ownership{
-			Owners: []*facetsv1beta1.Owner{
-				{Name: blob.Owner},
-			},
+		Ownership: []*v1beta2.Owner{
+			{Name: blob.Owner},
 		},
-		Timestamps: &commonv1beta1.Timestamp{
-			CreateTime: timestamppb.New(blob.Created),
-			UpdateTime: timestamppb.New(blob.Updated),
-		},
+		CreateTime: timestamppb.New(blob.Created),
+		UpdateTime: timestamppb.New(blob.Updated),
 	}
 }
 

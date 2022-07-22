@@ -5,6 +5,7 @@ import (
 	_ "embed"
 
 	"github.com/odpf/meteor/models"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
 	"github.com/odpf/meteor/utils"
@@ -63,9 +64,9 @@ func (p *Processor) Process(ctx context.Context, src models.Record) (dst models.
 	return models.NewRecord(result), nil
 }
 
-func (p *Processor) process(record models.Record) (models.Metadata, error) {
+func (p *Processor) process(record models.Record) (*v1beta2.Asset, error) {
 	data := record.Data()
-	p.logger.Debug("enriching record", "record", data.GetResource().Urn)
+	p.logger.Debug("enriching record", "record", data.Urn)
 	customProps := utils.GetCustomProperties(data)
 
 	// update custom properties using value from config

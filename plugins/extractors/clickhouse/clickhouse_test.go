@@ -11,13 +11,12 @@ import (
 	"testing"
 
 	"github.com/odpf/meteor/test/utils"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"database/sql"
 
 	_ "github.com/ClickHouse/clickhouse-go"
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
 	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/plugins/extractors/clickhouse"
@@ -118,58 +117,64 @@ func TestExtract(t *testing.T) {
 }
 
 func getExpected() []models.Record {
+	table1, err := anypb.New(&v1beta2.Table{
+		Columns: []*v1beta2.Column{
+			{
+				Name:        "applicant_id",
+				DataType:    "Int32",
+				Description: "",
+			},
+			{
+				Name:        "last_name",
+				DataType:    "String",
+				Description: "",
+			},
+			{
+				Name:        "first_name",
+				DataType:    "String",
+				Description: "",
+			},
+		},
+	})
+	if err != nil {
+		err = fmt.Errorf("error creating Any struct for test: %w", err)
+		log.Fatal(err)
+	}
+	table2, err := anypb.New(&v1beta2.Table{
+		Columns: []*v1beta2.Column{
+			{
+				Name:        "job_id",
+				DataType:    "Int32",
+				Description: "",
+			},
+			{
+				Name:        "job",
+				DataType:    "String",
+				Description: "",
+			},
+			{
+				Name:        "department",
+				DataType:    "String",
+				Description: "",
+			},
+		},
+	})
+	if err != nil {
+		err = fmt.Errorf("error creating Any struct for test: %w", err)
+		log.Fatal(err)
+	}
 	return []models.Record{
-		models.NewRecord(&assetsv1beta1.Table{
-			Resource: &commonv1beta1.Resource{
-				Urn:  "mockdata_meteor_metadata_test.applicant",
-				Name: "applicant",
-				Type: "table",
-			},
-			Schema: &facetsv1beta1.Columns{
-				Columns: []*facetsv1beta1.Column{
-					{
-						Name:        "applicant_id",
-						DataType:    "Int32",
-						Description: "",
-					},
-					{
-						Name:        "last_name",
-						DataType:    "String",
-						Description: "",
-					},
-					{
-						Name:        "first_name",
-						DataType:    "String",
-						Description: "",
-					},
-				},
-			},
+		models.NewRecord(&v1beta2.Asset{
+			Urn:  "mockdata_meteor_metadata_test.applicant",
+			Name: "applicant",
+			Type: "table",
+			Data: table1,
 		}),
-		models.NewRecord(&assetsv1beta1.Table{
-			Resource: &commonv1beta1.Resource{
-				Urn:  "mockdata_meteor_metadata_test.jobs",
-				Name: "jobs",
-				Type: "table",
-			},
-			Schema: &facetsv1beta1.Columns{
-				Columns: []*facetsv1beta1.Column{
-					{
-						Name:        "job_id",
-						DataType:    "Int32",
-						Description: "",
-					},
-					{
-						Name:        "job",
-						DataType:    "String",
-						Description: "",
-					},
-					{
-						Name:        "department",
-						DataType:    "String",
-						Description: "",
-					},
-				},
-			},
+		models.NewRecord(&v1beta2.Asset{
+			Urn:  "mockdata_meteor_metadata_test.jobs",
+			Name: "jobs",
+			Type: "table",
+			Data: table2,
 		}),
 	}
 }

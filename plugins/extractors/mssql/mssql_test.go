@@ -12,11 +12,10 @@ import (
 	"testing"
 
 	"github.com/odpf/meteor/test/utils"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	_ "github.com/denisenkom/go-mssqldb"
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
 	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/plugins/extractors/mssql"
@@ -106,7 +105,7 @@ func TestExtract(t *testing.T) {
 		err = extr.Extract(ctx, emitter.Push)
 
 		assert.NoError(t, err)
-		assert.Equal(t, getExpected(), emitter.Get())
+		assert.Equal(t, getExpected(t), emitter.Get())
 	})
 }
 
@@ -143,65 +142,69 @@ func execute(db *sql.DB, queries []string) (err error) {
 	return
 }
 
-func getExpected() []models.Record {
+func getExpected(t *testing.T) []models.Record {
+	data1, err := anypb.New(&v1beta2.Table{
+		Columns: []*v1beta2.Column{
+			{
+				DataType:   "int",
+				Name:       "applicant_id",
+				IsNullable: true,
+				Length:     0,
+			},
+			{
+				DataType:   "varchar",
+				Name:       "first_name",
+				IsNullable: true,
+				Length:     255,
+			},
+			{
+				DataType:   "varchar",
+				Name:       "last_name",
+				IsNullable: true,
+				Length:     255,
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(fmt.Println(err, "failed to build Any struct"))
+	}
+	data2, err := anypb.New(&v1beta2.Table{
+		Columns: []*v1beta2.Column{
+			{
+				DataType:   "varchar",
+				Name:       "department",
+				IsNullable: true,
+				Length:     255,
+			},
+			{
+				DataType:   "varchar",
+				Name:       "job",
+				IsNullable: true,
+				Length:     255,
+			},
+			{
+				DataType:   "int",
+				Name:       "job_id",
+				IsNullable: true,
+				Length:     0,
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(fmt.Println(err, "failed to build Any struct"))
+	}
 	return []models.Record{
-		models.NewRecord(&assetsv1beta1.Table{
-			Resource: &commonv1beta1.Resource{
-				Urn:  "mssql::my-mssql/mockdata_meteor_metadata_test/applicant",
-				Name: "applicant",
-				Type: "table",
-			},
-			Schema: &facetsv1beta1.Columns{
-				Columns: []*facetsv1beta1.Column{
-					{
-						DataType:   "int",
-						Name:       "applicant_id",
-						IsNullable: true,
-						Length:     0,
-					},
-					{
-						DataType:   "varchar",
-						Name:       "first_name",
-						IsNullable: true,
-						Length:     255,
-					},
-					{
-						DataType:   "varchar",
-						Name:       "last_name",
-						IsNullable: true,
-						Length:     255,
-					},
-				},
-			},
+		models.NewRecord(&v1beta2.Asset{
+			Urn:  "mssql::my-mssql/mockdata_meteor_metadata_test/applicant",
+			Name: "applicant",
+			Type: "table",
+			Data: data1,
 		}),
-		models.NewRecord(&assetsv1beta1.Table{
-			Resource: &commonv1beta1.Resource{
-				Urn:  "mssql::my-mssql/mockdata_meteor_metadata_test/jobs",
-				Name: "jobs",
-				Type: "table",
-			},
-			Schema: &facetsv1beta1.Columns{
-				Columns: []*facetsv1beta1.Column{
-					{
-						DataType:   "varchar",
-						Name:       "department",
-						IsNullable: true,
-						Length:     255,
-					},
-					{
-						DataType:   "varchar",
-						Name:       "job",
-						IsNullable: true,
-						Length:     255,
-					},
-					{
-						DataType:   "int",
-						Name:       "job_id",
-						IsNullable: true,
-						Length:     0,
-					},
-				},
-			},
+		models.NewRecord(&v1beta2.Asset{
+			Urn:  "mssql::my-mssql/mockdata_meteor_metadata_test/jobs",
+			Name: "jobs",
+			Type: "table",
+			Data: data2,
 		}),
 	}
 }

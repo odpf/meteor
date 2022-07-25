@@ -6,15 +6,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"github.com/stretchr/testify/require"
 	"io/ioutil"
 	"net/http"
 	"testing"
 
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins/sinks/stencil"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/odpf/meteor/plugins"
 	testUtils "github.com/odpf/meteor/test/utils"
@@ -69,8 +69,14 @@ func TestSink(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		data := &assetsv1beta1.Table{Resource: &commonv1beta1.Resource{Urn: tableURN}}
-		err = stencilSink.Sink(ctx, []models.Record{models.NewRecord(data)})
+		table, err := anypb.New(&v1beta2.Table{})
+		require.NoError(t, err)
+		asset := &v1beta2.Asset{
+			Data: table,
+		}
+
+		err = stencilSink.Sink(ctx, []models.Record{models.NewRecord(asset)})
+		require.Error(t, err)
 		assert.Equal(t, errMessage, err.Error())
 	})
 
@@ -92,11 +98,116 @@ func TestSink(t *testing.T) {
 					t.Fatal(err)
 				}
 
-				data := &assetsv1beta1.Table{Resource: &commonv1beta1.Resource{Urn: tableURN}}
-				err = stencilSink.Sink(ctx, []models.Record{models.NewRecord(data)})
+				table, err := anypb.New(&v1beta2.Table{})
+				require.NoError(t, err)
+				asset := &v1beta2.Asset{
+					Data: table,
+				}
+				err = stencilSink.Sink(ctx, []models.Record{models.NewRecord(asset)})
 				assert.True(t, errors.Is(err, plugins.RetryError{}))
 			})
 		}
+	})
+
+	jsonTable1, _ := anypb.New(&v1beta2.Table{
+		Columns: []*v1beta2.Column{
+			{
+				Name:        "id",
+				Description: "It is the ID",
+				DataType:    "INT",
+				IsNullable:  true,
+			},
+			{
+				Name:        "user_id",
+				Description: "It is the user ID",
+				DataType:    "STRING",
+				IsNullable:  false,
+			},
+			{
+				Name:        "email_id",
+				Description: "It is the email ID",
+				IsNullable:  true,
+			},
+			{
+				Name:        "description",
+				Description: "It is the description",
+				DataType:    "STRING",
+				IsNullable:  true,
+			},
+			{
+				Name:        "is_active",
+				Description: "It shows user regularity",
+				DataType:    "BOOLEAN",
+				IsNullable:  false,
+			},
+			{
+				Name:        "address",
+				Description: "It shows user address",
+				DataType:    "RECORD",
+				IsNullable:  false,
+			},
+			{
+				Name:        "range",
+				Description: "It is the range",
+				DataType:    "BYTES",
+				IsNullable:  false,
+			},
+		},
+	})
+	jsonTable2, _ := anypb.New(&v1beta2.Table{
+		Columns: []*v1beta2.Column{
+			{
+				Name:        "id",
+				Description: "It is the ID",
+				DataType:    "integer",
+				IsNullable:  true,
+			},
+			{
+				Name:        "user_id",
+				Description: "It is the user ID",
+				DataType:    "varchar",
+				IsNullable:  false,
+			},
+			{
+				Name:        "email_id",
+				Description: "It is the email ID",
+				IsNullable:  true,
+			},
+			{
+				Name:        "description",
+				Description: "It is the description",
+				DataType:    "varchar",
+				IsNullable:  true,
+			},
+			{
+				Name:        "is_active",
+				Description: "It shows user regularity",
+				DataType:    "boolean",
+				IsNullable:  false,
+			},
+			{
+				Name:        "range",
+				Description: "It is the range",
+				DataType:    "bytea",
+				IsNullable:  false,
+			},
+		},
+	})
+	jsonTable3, _ := anypb.New(&v1beta2.Table{
+		Columns: []*v1beta2.Column{
+			{
+				Name:        "id",
+				Description: "It is the ID",
+				DataType:    "INT",
+				IsNullable:  true,
+			},
+			{
+				Name:        "user_id",
+				Description: "It is the user ID",
+				DataType:    "STRING",
+				IsNullable:  false,
+			},
+		},
 	})
 
 	successJsonTestCases := []struct {
@@ -107,57 +218,11 @@ func TestSink(t *testing.T) {
 	}{
 		{
 			description: "should create the right request from json schema to stencil when bigquery is the service",
-			data: &assetsv1beta1.Table{
-				Resource: &commonv1beta1.Resource{
-					Urn:     tableURN,
-					Name:    "table-name",
-					Service: "bigquery",
-				},
-				Schema: &facetsv1beta1.Columns{
-					Columns: []*facetsv1beta1.Column{
-						{
-							Name:        "id",
-							Description: "It is the ID",
-							DataType:    "INT",
-							IsNullable:  true,
-						},
-						{
-							Name:        "user_id",
-							Description: "It is the user ID",
-							DataType:    "STRING",
-							IsNullable:  false,
-						},
-						{
-							Name:        "email_id",
-							Description: "It is the email ID",
-							IsNullable:  true,
-						},
-						{
-							Name:        "description",
-							Description: "It is the description",
-							DataType:    "STRING",
-							IsNullable:  true,
-						},
-						{
-							Name:        "is_active",
-							Description: "It shows user regularity",
-							DataType:    "BOOLEAN",
-							IsNullable:  false,
-						},
-						{
-							Name:        "address",
-							Description: "It shows user address",
-							DataType:    "RECORD",
-							IsNullable:  false,
-						},
-						{
-							Name:        "range",
-							Description: "It is the range",
-							DataType:    "BYTES",
-							IsNullable:  false,
-						},
-					},
-				},
+			data: &v1beta2.Asset{
+				Urn:     tableURN,
+				Name:    "table-name",
+				Service: "bigquery",
+				Data:    jsonTable1,
 			},
 			config: map[string]interface{}{
 				"host":         host,
@@ -203,51 +268,11 @@ func TestSink(t *testing.T) {
 		},
 		{
 			description: "should create the right request from json schema to stencil when postgres is the service",
-			data: &assetsv1beta1.Table{
-				Resource: &commonv1beta1.Resource{
-					Urn:     tableURN,
-					Name:    "table-name",
-					Service: "postgres",
-				},
-				Schema: &facetsv1beta1.Columns{
-					Columns: []*facetsv1beta1.Column{
-						{
-							Name:        "id",
-							Description: "It is the ID",
-							DataType:    "integer",
-							IsNullable:  true,
-						},
-						{
-							Name:        "user_id",
-							Description: "It is the user ID",
-							DataType:    "varchar",
-							IsNullable:  false,
-						},
-						{
-							Name:        "email_id",
-							Description: "It is the email ID",
-							IsNullable:  true,
-						},
-						{
-							Name:        "description",
-							Description: "It is the description",
-							DataType:    "varchar",
-							IsNullable:  true,
-						},
-						{
-							Name:        "is_active",
-							Description: "It shows user regularity",
-							DataType:    "boolean",
-							IsNullable:  false,
-						},
-						{
-							Name:        "range",
-							Description: "It is the range",
-							DataType:    "bytea",
-							IsNullable:  false,
-						},
-					},
-				},
+			data: &v1beta2.Asset{
+				Urn:     tableURN,
+				Name:    "table-name",
+				Service: "postgres",
+				Data:    jsonTable2,
 			},
 			config: map[string]interface{}{
 				"host":         host,
@@ -289,28 +314,11 @@ func TestSink(t *testing.T) {
 		},
 		{
 			description: "should return correct schema request with valid config",
-			data: &assetsv1beta1.Table{
-				Resource: &commonv1beta1.Resource{
-					Urn:     tableURN,
-					Name:    "table-name",
-					Service: "bigquery",
-				},
-				Schema: &facetsv1beta1.Columns{
-					Columns: []*facetsv1beta1.Column{
-						{
-							Name:        "id",
-							Description: "It is the ID",
-							DataType:    "INT",
-							IsNullable:  true,
-						},
-						{
-							Name:        "user_id",
-							Description: "It is the user ID",
-							DataType:    "STRING",
-							IsNullable:  false,
-						},
-					},
-				},
+			data: &v1beta2.Asset{
+				Urn:     tableURN,
+				Name:    "table-name",
+				Service: "bigquery",
+				Data:    jsonTable3,
 			},
 			config: map[string]interface{}{
 				"host":         host,
@@ -363,6 +371,85 @@ func TestSink(t *testing.T) {
 		})
 	}
 
+	avroTable1, _ := anypb.New(&v1beta2.Table{
+		Columns: []*v1beta2.Column{
+			{
+				Name:        "id",
+				Description: "It is the ID",
+				DataType:    "INT",
+				IsNullable:  true,
+			},
+			{
+				Name:        "user_id",
+				Description: "It is the user ID",
+				DataType:    "STRING",
+				IsNullable:  false,
+			},
+			{
+				Name:        "description",
+				Description: "It is the description",
+				IsNullable:  true,
+			},
+			{
+				Name:        "distance",
+				Description: "It is the user distance from source",
+				DataType:    "FLOAT",
+				IsNullable:  true,
+			},
+			{
+				Name:        "is_active",
+				Description: "It shows user regularity",
+				DataType:    "BOOLEAN",
+				IsNullable:  false,
+			},
+			{
+				Name:        "address",
+				Description: "It shows user address",
+				DataType:    "RECORD",
+				IsNullable:  false,
+			},
+			{
+				Name:        "range",
+				Description: "It is the range",
+				DataType:    "BYTES",
+				IsNullable:  false,
+			},
+		},
+	})
+	avroTable2, _ := anypb.New(&v1beta2.Table{
+		Columns: []*v1beta2.Column{
+			{
+				Name:        "id",
+				Description: "It is the ID",
+				DataType:    "integer",
+				IsNullable:  true,
+			},
+			{
+				Name:        "user_id",
+				Description: "It is the user ID",
+				DataType:    "varchar",
+				IsNullable:  false,
+			},
+			{
+				Name:        "description",
+				Description: "It is the description",
+				IsNullable:  true,
+			},
+			{
+				Name:        "is_active",
+				Description: "It shows user regularity",
+				DataType:    "boolean",
+				IsNullable:  false,
+			},
+			{
+				Name:        "range",
+				Description: "It is the range",
+				DataType:    "bytea",
+				IsNullable:  false,
+			},
+		},
+	})
+
 	successAvroTestCases := []struct {
 		description string
 		data        *v1beta2.Asset
@@ -371,58 +458,12 @@ func TestSink(t *testing.T) {
 	}{
 		{
 			description: "should create the right request from avro schema to stencil when bigquery is the service",
-			data: &assetsv1beta1.Table{
-				Resource: &commonv1beta1.Resource{
-					Urn:     tableURN,
-					Name:    "table-name",
-					Type:    "table",
-					Service: "bigquery",
-				},
-				Schema: &facetsv1beta1.Columns{
-					Columns: []*facetsv1beta1.Column{
-						{
-							Name:        "id",
-							Description: "It is the ID",
-							DataType:    "INT",
-							IsNullable:  true,
-						},
-						{
-							Name:        "user_id",
-							Description: "It is the user ID",
-							DataType:    "STRING",
-							IsNullable:  false,
-						},
-						{
-							Name:        "description",
-							Description: "It is the description",
-							IsNullable:  true,
-						},
-						{
-							Name:        "distance",
-							Description: "It is the user distance from source",
-							DataType:    "FLOAT",
-							IsNullable:  true,
-						},
-						{
-							Name:        "is_active",
-							Description: "It shows user regularity",
-							DataType:    "BOOLEAN",
-							IsNullable:  false,
-						},
-						{
-							Name:        "address",
-							Description: "It shows user address",
-							DataType:    "RECORD",
-							IsNullable:  false,
-						},
-						{
-							Name:        "range",
-							Description: "It is the range",
-							DataType:    "BYTES",
-							IsNullable:  false,
-						},
-					},
-				},
+			data: &v1beta2.Asset{
+				Urn:     tableURN,
+				Name:    "table-name",
+				Type:    "table",
+				Service: "bigquery",
+				Data:    avroTable1,
 			},
 			config: map[string]interface{}{
 				"host":         host,
@@ -467,46 +508,12 @@ func TestSink(t *testing.T) {
 		},
 		{
 			description: "should create the right request to stencil when postgres is the service",
-			data: &assetsv1beta1.Table{
-				Resource: &commonv1beta1.Resource{
-					Urn:     tableURN,
-					Name:    "table-name",
-					Type:    "table",
-					Service: "postgres",
-				},
-				Schema: &facetsv1beta1.Columns{
-					Columns: []*facetsv1beta1.Column{
-						{
-							Name:        "id",
-							Description: "It is the ID",
-							DataType:    "integer",
-							IsNullable:  true,
-						},
-						{
-							Name:        "user_id",
-							Description: "It is the user ID",
-							DataType:    "varchar",
-							IsNullable:  false,
-						},
-						{
-							Name:        "description",
-							Description: "It is the description",
-							IsNullable:  true,
-						},
-						{
-							Name:        "is_active",
-							Description: "It shows user regularity",
-							DataType:    "boolean",
-							IsNullable:  false,
-						},
-						{
-							Name:        "range",
-							Description: "It is the range",
-							DataType:    "bytea",
-							IsNullable:  false,
-						},
-					},
-				},
+			data: &v1beta2.Asset{
+				Urn:     tableURN,
+				Name:    "table-name",
+				Type:    "table",
+				Service: "postgres",
+				Data:    avroTable2,
 			},
 			config: map[string]interface{}{
 				"host":         host,

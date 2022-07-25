@@ -107,7 +107,7 @@ func TestExtract(t *testing.T) {
 func NewTestServer() *httptest.Server {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/dashboards", func(res http.ResponseWriter, req *http.Request) {
-		res.Write([]byte(`
+		_, err := res.Write([]byte(`
 			{
 				"count": 2,
 				"page": 1,
@@ -186,6 +186,9 @@ func NewTestServer() *httptest.Server {
 		`,
 		),
 		)
+		if err != nil {
+			return
+		}
 	})
 	return httptest.NewServer(mux)
 }

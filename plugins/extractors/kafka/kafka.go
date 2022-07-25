@@ -132,7 +132,7 @@ func (e *Extractor) buildAsset(topicName string, numOfPartitions int) (asset *v1
 		},
 	})
 	if err != nil {
-		err = fmt.Errorf("error creating Any struct: %w", err)
+		e.logger.Warn("error creating Any struct", "error", err)
 	}
 
 	return &v1beta2.Asset{

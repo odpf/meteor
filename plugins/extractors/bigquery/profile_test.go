@@ -26,7 +26,7 @@ func TestBuildTableProfile(t *testing.T) {
 		tp := extr.buildTableProfile(tableURN, tableStats)
 
 		assert.Empty(t, tp.UsageCount)
-		assert.Empty(t, tp.Joins)
+		assert.Empty(t, tp.CommonJoins)
 	})
 
 	t.Run("table profile usage related fields are empty if table stats is nil", func(t *testing.T) {
@@ -39,7 +39,7 @@ func TestBuildTableProfile(t *testing.T) {
 		tp := extr.buildTableProfile(tableURN, nil)
 
 		assert.Empty(t, tp.UsageCount)
-		assert.Empty(t, tp.Joins)
+		assert.Empty(t, tp.CommonJoins)
 	})
 
 	t.Run("table profile usage related fields are populated if table stats is not nil and usage collection is enabled", func(t *testing.T) {
@@ -73,15 +73,15 @@ func TestBuildTableProfile(t *testing.T) {
 		tp := extr.buildTableProfile(tableURN, tableStats)
 
 		assert.EqualValues(t, 5, tp.UsageCount)
-		assert.Contains(t, tp.Joins, &assetsv1beta1.Join{
+		assert.Contains(t, tp.CommonJoins, &v1beta2.TableCommonJoin{
 			Urn:   models.TableURN("bigquery", "project2", "dataset1", "table1"),
 			Count: 1,
 		})
-		assert.Contains(t, tp.Joins, &assetsv1beta1.Join{
+		assert.Contains(t, tp.CommonJoins, &v1beta2.TableCommonJoin{
 			Urn:   models.TableURN("bigquery", "project3", "dataset1", "table1"),
 			Count: 3,
 		})
-		assert.Contains(t, tp.Joins, &assetsv1beta1.Join{
+		assert.Contains(t, tp.CommonJoins, &v1beta2.TableCommonJoin{
 			Urn:   models.TableURN("bigquery", "project4", "dataset1", "table1"),
 			Count: 1,
 		})

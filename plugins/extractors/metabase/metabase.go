@@ -113,12 +113,23 @@ func (e *Extractor) buildDashboard(d Dashboard) (asset *v1beta2.Asset, err error
 	charts := e.buildCharts(dashboardUrn, dashboard)
 	dashboardUpstreams := e.buildDashboardUpstreams(charts)
 
+	//var assetChart v1beta2.Chart
+	//for _, chart := range charts {
+	//	if err = asset.Data.MarshalFrom(&assetChart); err != nil {
+	//		return
+	//	}
+	//}
+
 	data, err := anypb.New(&v1beta2.Dashboard{
 		Charts: charts,
 	})
 	if err != nil {
 		err = fmt.Errorf("error creating Any struct: %w", err)
 	}
+	//
+	//if err = asset.Data.UnmarshalTo(data); err != nil {
+	//	return
+	//}
 
 	asset = &v1beta2.Asset{
 		Urn:         dashboardUrn,

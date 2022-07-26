@@ -1,38 +1,32 @@
 [{
-        "resource": {
-            "urn": "optimus::optimus:80/project-A.namespace-A.job-A",
-            "type": "job",
-            "name": "job-A",
-            "service": "optimus",
-            "description": "sample description for job-A"
-        },
-        "ownership": {
-            "owners": [{
-                "email": "john_doe@example.com",
-                "urn": "john_doe@example.com"
-            }]
-        },
-        "properties": {
-            "attributes": {
-                "version": 1,
-                "project": "project-A",
-                "namespace": "namespace-A",
-                "owner": "john_doe@example.com",
-                "startDate": "2019-09-16",
-                "endDate": "",
-                "interval": "0 19 * * *",
-                "dependsOnPast": false,
-                "catchUp": false,
-                "taskName": "bq2bq",
-                "windowSize": "48h",
-                "windowOffset": "24h",
-                "windowTruncateTo": "d",
-                "sql": "SELECT * FROM projectA.datasetB.tableC",
-                "task": {
-                    "name": "task-A",
-                    "description": "task's description",
-                    "image": "task's image"
-                }
+        "urn": "optimus::optimus:80/project-A.namespace-A.job-A",
+        "type": "job",
+        "name": "job-A",
+        "service": "optimus",
+        "description": "sample description for job-A",
+        "owners": [{
+            "email": "john_doe@example.com",
+            "urn": "john_doe@example.com"
+        }],
+        "attributes": {
+            "version": 1,
+            "project": "project-A",
+            "namespace": "namespace-A",
+            "owner": "john_doe@example.com",
+            "startDate": "2019-09-16",
+            "endDate": "",
+            "interval": "0 19 * * *",
+            "dependsOnPast": false,
+            "catchUp": false,
+            "taskName": "bq2bq",
+            "windowSize": "48h",
+            "windowOffset": "24h",
+            "windowTruncateTo": "d",
+            "sql": "SELECT * FROM projectA.datasetB.tableC",
+            "task": {
+                "name": "task-A",
+                "description": "task's description",
+                "image": "task's image"
             }
         },
         "lineage": {
@@ -49,40 +43,34 @@
         }
     },
     {
-        "resource": {
-            "urn": "optimus::optimus:80/project-A.namespace-A.job-B",
-            "name": "job-B",
-            "service": "optimus",
-            "type": "job",
-            "description": "sample description for job-B"
-        },
-        "ownership": {
-            "owners": [{
-                "email": "jane_doe@example.com",
-                "urn": "jane_doe@example.com"
-            }]
-        },
-        "properties": {
-            "attributes": {
-                "version": 1,
-                "project": "project-A",
-                "namespace": "namespace-A",
-                "owner": "jane_doe@example.com",
-                "startDate": "2021-01-01",
-                "endDate": "",
-                "interval": "0 19 1 * *",
-                "dependsOnPast": false,
-                "catchUp": true,
-                "taskName": "bq2bq",
-                "windowSize": "720h",
-                "windowOffset": "-720h",
-                "windowTruncateTo": "M",
-                "sql": "SELECT * FROM projectZ.datasetY.tableX",
-                "task": {
-                    "name": "task-B",
-                    "description": "task's description B",
-                    "image": "task's image B"
-                }
+        "urn": "optimus::optimus:80/project-A.namespace-A.job-B",
+        "name": "job-B",
+        "service": "optimus",
+        "type": "job",
+        "description": "sample description for job-B",
+        "owners": [{
+            "email": "jane_doe@example.com",
+            "urn": "jane_doe@example.com"
+        }],
+        "attributes": {
+            "version": 1,
+            "project": "project-A",
+            "namespace": "namespace-A",
+            "owner": "jane_doe@example.com",
+            "startDate": "2021-01-01",
+            "endDate": "",
+            "interval": "0 19 1 * *",
+            "dependsOnPast": false,
+            "catchUp": true,
+            "taskName": "bq2bq",
+            "windowSize": "720h",
+            "windowOffset": "-720h",
+            "windowTruncateTo": "M",
+            "sql": "SELECT * FROM projectZ.datasetY.tableX",
+            "task": {
+                "name": "task-B",
+                "description": "task's description B",
+                "image": "task's image B"
             }
         },
         "lineage": {

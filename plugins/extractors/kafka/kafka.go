@@ -136,7 +136,7 @@ func (e *Extractor) buildAsset(topicName string, numOfPartitions int) (asset *v1
 	}
 
 	return &v1beta2.Asset{
-		Urn:     fmt.Sprintf("kafka::%s/%s", e.config.Label, topic),
+		Urn:     fmt.Sprintf("kafka::%s/%s", e.config.Label, topicName),
 		Name:    topicName,
 		Service: "kafka",
 		Type:    "topic",

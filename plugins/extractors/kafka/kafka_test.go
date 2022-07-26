@@ -127,6 +127,9 @@ func TestExtract(t *testing.T) {
 				NumberOfPartitions: 1,
 			},
 		})
+		if err != nil {
+			t.Fatal(err)
+		}
 
 		// assert results with expected data
 		expected := []models.Record{
@@ -152,6 +155,7 @@ func TestExtract(t *testing.T) {
 				Data:    data,
 			}),
 		}
+
 		// We need this function because the extractor cannot guarantee order
 		// so comparing expected slice and result slice will not be consistent
 		assertResults(t, expected, emitter.Get())
@@ -191,16 +195,16 @@ func assertResults(t *testing.T, expected []models.Record, result []models.Recor
 
 	expectedMap := make(map[string]*v1beta2.Asset)
 	for _, record := range expected {
-		asset := record.Data()
-		expectedMap[asset.Urn] = asset
+		expectedAsset := record.Data()
+		expectedMap[expectedAsset.Urn] = expectedAsset
 	}
 
 	for _, record := range result {
-		topic := record.Data()
-		assert.Contains(t, expectedMap, topic.Urn)
-		assert.Equal(t, expectedMap[topic.Urn], topic)
+		actualAsset := record.Data()
+		assert.Contains(t, expectedMap, actualAsset.Urn)
+		assert.Equal(t, expectedMap[actualAsset.Urn], actualAsset)
 
 		// delete entry to make sure there is no duplicate
-		delete(expectedMap, topic.Urn)
+		delete(expectedMap, actualAsset.Urn)
 	}
 }

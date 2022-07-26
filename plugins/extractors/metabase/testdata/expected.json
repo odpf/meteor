@@ -1,17 +1,13 @@
 [{
-    "resource": {
-        "urn": "metabase::my-metabase/dashboard/1",
-        "name": "Main",
-        "service": "metabase",
-        "type": "dashboard",
-        "description": "HELPFUL DESCRIPTION"
-    },
-    "properties": {
-        "attributes": {
-            "id": 1,
-            "collection_id": 1,
-            "creator_id": 1
-        }
+    "urn": "metabase::my-metabase/dashboard/1",
+    "name": "Main",
+    "service": "metabase",
+    "type": "dashboard",
+    "description": "HELPFUL DESCRIPTION",
+    "attributes": {
+        "id": 1,
+        "collection_id": 1,
+        "creator_id": 1
     },
     "lineage": {
         "upstreams": [
@@ -37,132 +33,132 @@
             }
         ]
     },
-    "charts": [
-        {
-            "urn": "metabase::my-metabase/card/1",
-            "dashboard_urn": "metabase::my-metabase/dashboard/1",
-            "source": "metabase",
-            "name": "Orders, Filtered by Quantity",
-            "description": "HELPFUL CHART DESC",
-            "properties": {
-                "attributes": {
-                    "id": 1,
-                    "collection_id": 1,
-                    "creator_id": 1,
-                    "database_id": 1,
-                    "table_id": 2,
-                    "query_average_duration": 114,
-                    "display": "table",
-                    "archived": false
+    "data" : {
+        "charts": [
+            {
+                "urn": "metabase::my-metabase/card/1",
+                "dashboard_urn": "metabase::my-metabase/dashboard/1",
+                "source": "metabase",
+                "name": "Orders, Filtered by Quantity",
+                "description": "HELPFUL CHART DESC",
+                "properties": {
+                    "attributes": {
+                        "id": 1,
+                        "collection_id": 1,
+                        "creator_id": 1,
+                        "database_id": 1,
+                        "table_id": 2,
+                        "query_average_duration": 114,
+                        "display": "table",
+                        "archived": false
+                    }
+                },
+                "lineage": {
+                    "upstreams": [
+                        {
+                            "urn": "h2::zip:/app/metabase.jar!/sample-dataset.db/ORDERS",
+                            "type": "table",
+                            "service": "h2"
+                        }
+                    ]
                 }
             },
-            "lineage": {
-                "upstreams": [
-                    {
-                        "urn": "h2::zip:/app/metabase.jar!/sample-dataset.db/ORDERS",
-                        "type": "table",
-                        "service": "h2"
+            {
+                "urn": "metabase::my-metabase/card/2",
+                "dashboard_urn": "metabase::my-metabase/dashboard/1",
+                "source": "metabase",
+                "name": "Exceptional Users",
+                "description": "This shows only exceptional users.",
+                "properties": {
+                    "attributes": {
+                        "id": 2,
+                        "collection_id": 0,
+                        "creator_id": 1,
+                        "database_id": 2,
+                        "table_id": 0,
+                        "query_average_duration": 25,
+                        "display": "table",
+                        "archived": false
                     }
-                ]
+                },
+                "lineage": {
+                    "upstreams": [
+                        {
+                            "urn": "postgres::postgres:5432/postgres/user",
+                            "type": "table",
+                            "service": "postgres"
+                        }
+                    ]
+                }
+            },
+            {
+                "urn": "metabase::my-metabase/card/3",
+                "dashboard_urn": "metabase::my-metabase/dashboard/1",
+                "source": "metabase",
+                "name": "Users, Average of Total Followers and Cumulative sum of Total Likes, Filtered by Total Followers",
+                "description": "Users, Average of Total Followers",
+                "properties": {
+                    "attributes": {
+                        "id": 3,
+                        "collection_id": 1,
+                        "creator_id": 1,
+                        "database_id": 2,
+                        "table_id": 5,
+                        "query_average_duration": 30,
+                        "display": "table",
+                        "archived": false
+                    }
+                },
+                "lineage": {
+                    "upstreams": [
+                        {
+                            "urn": "postgres::postgres:5432/postgres/user",
+                            "type": "table",
+                            "service": "postgres"
+                        }
+                    ]
+                }
+            },
+            {
+                "dashboard_urn": "metabase::my-metabase/dashboard/1",
+                "lineage": {
+                    "upstreams": [
+                        {
+                            "service": "bigquery",
+                            "type": "table",
+                            "urn": "bigquery::sample-project/dataset_a/invoice"
+                        },
+                        {
+                            "service": "bigquery",
+                            "type": "table",
+                            "urn": "bigquery::project_a/dataset_b/user"
+                        }
+                    ]
+                },
+                "name": "BCR",
+                "properties": {
+                    "attributes": {
+                        "archived": false,
+                        "collection_id": 1,
+                        "creator_id": 1,
+                        "database_id": 2,
+                        "display": "line",
+                        "id": 4,
+                        "query_average_duration": 0,
+                        "table_id": 0
+                    }
+                },
+                "source": "metabase",
+                "urn": "metabase::my-metabase/card/4"
             }
-        },
-        {
-            "urn": "metabase::my-metabase/card/2",
-            "dashboard_urn": "metabase::my-metabase/dashboard/1",
-            "source": "metabase",
-            "name": "Exceptional Users",
-            "description": "This shows only exceptional users.",
-            "properties": {
-                "attributes": {
-                    "id": 2,
-                    "collection_id": 0,
-                    "creator_id": 1,
-                    "database_id": 2,
-                    "table_id": 0,
-                    "query_average_duration": 25,
-                    "display": "table",
-                    "archived": false
-                }
-            },
-            "lineage": {
-                "upstreams": [
-                    {
-                        "urn": "postgres::postgres:5432/postgres/user",
-                        "type": "table",
-                        "service": "postgres"
-                    }
-                ]
-            }
-        },
-        {
-            "urn": "metabase::my-metabase/card/3",
-            "dashboard_urn": "metabase::my-metabase/dashboard/1",
-            "source": "metabase",
-            "name": "Users, Average of Total Followers and Cumulative sum of Total Likes, Filtered by Total Followers",
-            "description": "Users, Average of Total Followers",
-            "properties": {
-                "attributes": {
-                    "id": 3,
-                    "collection_id": 1,
-                    "creator_id": 1,
-                    "database_id": 2,
-                    "table_id": 5,
-                    "query_average_duration": 30,
-                    "display": "table",
-                    "archived": false
-                }
-            },
-            "lineage": {
-                "upstreams": [
-                    {
-                        "urn": "postgres::postgres:5432/postgres/user",
-                        "type": "table",
-                        "service": "postgres"
-                    }
-                ]
-            }
-        },
-        {
-            "dashboard_urn": "metabase::my-metabase/dashboard/1",
-            "lineage": {
-                "upstreams": [
-                    {
-                        "service": "bigquery",
-                        "type": "table",
-                        "urn": "bigquery::sample-project/dataset_a/invoice"
-                    },
-                    {
-                        "service": "bigquery",
-                        "type": "table",
-                        "urn": "bigquery::project_a/dataset_b/user"
-                    }
-                ]
-            },
-            "name": "BCR",
-            "properties": {
-                "attributes": {
-                    "archived": false,
-                    "collection_id": 1,
-                    "creator_id": 1,
-                    "database_id": 2,
-                    "display": "line",
-                    "id": 4,
-                    "query_average_duration": 0,
-                    "table_id": 0
-                }
-            },
-            "source": "metabase",
-            "urn": "metabase::my-metabase/card/4"
-        }
-    ],
-    "timestamps": {
-        "create_time": {
-            "seconds": 1635178240,
-            "nanos": 371000000
-        },
-        "update_time": {
-            "seconds": 1635849178,
-            "nanos": 786000000
-        }
+        ]
+    },
+    "create_time": {
+        "seconds": 1635178240,
+        "nanos": 371000000
+    },
+    "update_time": {
+        "seconds": 1635849178,
+        "nanos": 786000000
     }
 }]

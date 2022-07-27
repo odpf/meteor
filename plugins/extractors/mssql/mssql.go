@@ -7,6 +7,7 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/odpf/salt/log"
 
@@ -18,9 +19,7 @@ import (
 
 	"github.com/odpf/meteor/plugins/sqlutil"
 
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 )
 
 //go:embed README.md
@@ -130,24 +129,26 @@ func (e *Extractor) processTable(database string, tableName string) (err error) 
 	if err != nil {
 		return errors.Wrap(err, "failed to get columns")
 	}
-
+	table, err := anypb.New(&v1beta2.Table{
+		Columns: columns,
+	})
+	if err != nil {
+		err = fmt.Errorf("error creating Any struct: %w", err)
+		return err
+	}
 	// push table to channel
-	e.emit(models.NewRecord(&assetsv1beta1.Table{
-		Resource: &commonv1beta1.Resource{
-			Urn:  models.TableURN("mssql", e.config.Identifier, database, tableName),
-			Name: tableName,
-			Type: "table",
-		},
-		Schema: &facetsv1beta1.Columns{
-			Columns: columns,
-		},
+	e.emit(models.NewRecord(&v1beta2.Asset{
+		Urn:  models.TableURN("mssql", e.config.Identifier, database, tableName),
+		Name: tableName,
+		Type: "table",
+		Data: table,
 	}))
 
 	return
 }
 
 // getColumns extract columns from the given table
-func (e *Extractor) getColumns(database, tableName string) (columns []*facetsv1beta1.Column, err error) {
+func (e *Extractor) getColumns(database, tableName string) (columns []*v1beta2.Column, err error) {
 	query := fmt.Sprintf(
 		`SELECT COLUMN_NAME, DATA_TYPE, 
 		IS_NULLABLE, coalesce(CHARACTER_MAXIMUM_LENGTH,0) 
@@ -167,7 +168,7 @@ func (e *Extractor) getColumns(database, tableName string) (columns []*facetsv1b
 			e.logger.Error("failed to scan fields", "error", err)
 			continue
 		}
-		columns = append(columns, &facetsv1beta1.Column{
+		columns = append(columns, &v1beta2.Column{
 			Name:       fieldName,
 			DataType:   dataType,
 			IsNullable: e.isNullable(isNullableString),

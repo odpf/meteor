@@ -16,8 +16,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 )
 
 var (
@@ -350,9 +349,7 @@ func TestAgentRun(t *testing.T) {
 
 	t.Run("should return error when processing fails", func(t *testing.T) {
 		data := []models.Record{
-			models.NewRecord(&assetsv1beta1.Table{
-				Resource: &commonv1beta1.Resource{},
-			}),
+			models.NewRecord(&v1beta2.Asset{}),
 		}
 
 		extr := mocks.NewExtractor()
@@ -400,9 +397,7 @@ func TestAgentRun(t *testing.T) {
 
 	t.Run("should return error when processing panics", func(t *testing.T) {
 		data := []models.Record{
-			models.NewRecord(&assetsv1beta1.Table{
-				Resource: &commonv1beta1.Resource{},
-			}),
+			models.NewRecord(&v1beta2.Asset{}),
 		}
 
 		extr := mocks.NewExtractor()
@@ -449,9 +444,7 @@ func TestAgentRun(t *testing.T) {
 
 	t.Run("should not return error when sink fails", func(t *testing.T) {
 		data := []models.Record{
-			models.NewRecord(&assetsv1beta1.Table{
-				Resource: &commonv1beta1.Resource{},
-			}),
+			models.NewRecord(&v1beta2.Asset{}),
 		}
 
 		extr := mocks.NewExtractor()
@@ -501,9 +494,7 @@ func TestAgentRun(t *testing.T) {
 
 	t.Run("should return error when sink fails if StopOnSinkError is true", func(t *testing.T) {
 		data := []models.Record{
-			models.NewRecord(&assetsv1beta1.Table{
-				Resource: &commonv1beta1.Resource{},
-			}),
+			models.NewRecord(&v1beta2.Asset{}),
 		}
 
 		extr := mocks.NewExtractor()
@@ -554,9 +545,7 @@ func TestAgentRun(t *testing.T) {
 
 	t.Run("should return run on success", func(t *testing.T) {
 		data := []models.Record{
-			models.NewRecord(&assetsv1beta1.Table{
-				Resource: &commonv1beta1.Resource{},
-			}),
+			models.NewRecord(&v1beta2.Asset{}),
 		}
 
 		extr := mocks.NewExtractor()
@@ -607,9 +596,7 @@ func TestAgentRun(t *testing.T) {
 	t.Run("should collect run metrics", func(t *testing.T) {
 		expectedDuration := 1000
 		data := []models.Record{
-			models.NewRecord(&assetsv1beta1.Table{
-				Resource: &commonv1beta1.Resource{},
-			}),
+			models.NewRecord(&v1beta2.Asset{}),
 		}
 		timerFn := func() func() int {
 			return func() int {
@@ -667,9 +654,7 @@ func TestAgentRun(t *testing.T) {
 	t.Run("should retry if sink returns retry error", func(t *testing.T) {
 		err := errors.New("some-error")
 		data := []models.Record{
-			models.NewRecord(&assetsv1beta1.Table{
-				Resource: &commonv1beta1.Resource{},
-			}),
+			models.NewRecord(&v1beta2.Asset{}),
 		}
 
 		extr := mocks.NewExtractor()
@@ -727,9 +712,7 @@ func TestAgentRunMultiple(t *testing.T) {
 		validRecipe2.Name = "sample-2"
 		recipeList := []recipe.Recipe{validRecipe, validRecipe2}
 		data := []models.Record{
-			models.NewRecord(&assetsv1beta1.Table{
-				Resource: &commonv1beta1.Resource{},
-			}),
+			models.NewRecord(&v1beta2.Asset{}),
 		}
 		extr := mocks.NewExtractor()
 		extr.SetEmit(data)

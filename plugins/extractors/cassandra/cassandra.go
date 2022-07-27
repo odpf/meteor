@@ -6,13 +6,12 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/gocql/gocql"
 	"github.com/odpf/meteor/models"
 	_ "github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins/sqlutil"
 
 	"github.com/odpf/meteor/plugins"
@@ -157,29 +156,32 @@ func (e *Extractor) extractTables(keyspace string) (err error) {
 
 // processTable build and push table to out channel
 func (e *Extractor) processTable(keyspace string, tableName string) (err error) {
-	var columns []*facetsv1beta1.Column
+	var columns []*v1beta2.Column
 	columns, err = e.extractColumns(keyspace, tableName)
 	if err != nil {
 		return errors.Wrap(err, "failed to extract columns")
 	}
 
+	table, err := anypb.New(&v1beta2.Table{
+		Columns: columns,
+	})
+	if err != nil {
+		err = fmt.Errorf("error creating Any struct: %w", err)
+	}
+
 	// push table to channel
-	e.emit(models.NewRecord(&assetsv1beta1.Table{
-		Resource: &commonv1beta1.Resource{
-			Urn:  fmt.Sprintf("%s.%s", keyspace, tableName),
-			Name: tableName,
-			Type: "table",
-		},
-		Schema: &facetsv1beta1.Columns{
-			Columns: columns,
-		},
+	e.emit(models.NewRecord(&v1beta2.Asset{
+		Urn:  fmt.Sprintf("%s.%s", keyspace, tableName),
+		Name: tableName,
+		Type: "table",
+		Data: table,
 	}))
 
 	return
 }
 
 // extractColumns extract columns from a given table
-func (e *Extractor) extractColumns(keyspace string, tableName string) (columns []*facetsv1beta1.Column, err error) {
+func (e *Extractor) extractColumns(keyspace string, tableName string) (columns []*v1beta2.Column, err error) {
 	query := `SELECT column_name, type 
               FROM system_schema.columns 
               WHERE keyspace_name = ?
@@ -196,7 +198,7 @@ func (e *Extractor) extractColumns(keyspace string, tableName string) (columns [
 			continue
 		}
 
-		columns = append(columns, &facetsv1beta1.Column{
+		columns = append(columns, &v1beta2.Column{
 			Name:     fieldName,
 			DataType: dataType,
 		})

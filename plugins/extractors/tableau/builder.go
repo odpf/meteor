@@ -2,13 +2,12 @@ package tableau
 
 import (
 	"github.com/mitchellh/mapstructure"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/pkg/errors"
 )
 
-func (e *Extractor) buildLineage(tables []*Table) (lineage *facetsv1beta1.Lineage) {
-	upstreamLineages := []*commonv1beta1.Resource{}
+func (e *Extractor) buildLineage(tables []*Table) (lineage *v1beta2.Lineage) {
+	upstreamLineages := []*v1beta2.Resource{}
 	for _, t := range tables {
 		res, err := e.buildLineageResources(t)
 		if err != nil {
@@ -17,11 +16,11 @@ func (e *Extractor) buildLineage(tables []*Table) (lineage *facetsv1beta1.Lineag
 		}
 		upstreamLineages = append(upstreamLineages, res)
 	}
-	lineage = &facetsv1beta1.Lineage{Upstreams: upstreamLineages}
+	lineage = &v1beta2.Lineage{Upstreams: upstreamLineages}
 	return
 }
 
-func (e *Extractor) buildLineageResources(t *Table) (resource *commonv1beta1.Resource, err error) {
+func (e *Extractor) buildLineageResources(t *Table) (resource *v1beta2.Resource, err error) {
 	if t == nil {
 		err = errors.New("no table found")
 		return

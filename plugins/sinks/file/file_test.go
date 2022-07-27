@@ -6,12 +6,11 @@ import (
 	"testing"
 
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	f "github.com/odpf/meteor/plugins/sinks/file"
 	"github.com/stretchr/testify/assert"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 //go:embed README.md
@@ -96,56 +95,52 @@ func sinkValidSetup(t *testing.T, config map[string]interface{}) error {
 	fileSink := f.New()
 	err := fileSink.Init(context.TODO(), config)
 	assert.NoError(t, err)
-	err = fileSink.Sink(context.TODO(), getExpectedVal())
+	err = fileSink.Sink(context.TODO(), getExpectedVal(t))
 	assert.NoError(t, err)
 	return fileSink.Close()
 }
 
-func getExpectedVal() []models.Record {
+func getExpectedVal(t *testing.T) []models.Record {
+	table1, err := anypb.New(&v1beta2.Table{
+		Columns: []*v1beta2.Column{
+			{
+				Name:     "SomeStr",
+				DataType: "text",
+			},
+		},
+		Profile: &v1beta2.TableProfile{
+			TotalRows: 1,
+		},
+	})
+	if err != nil {
+		t.Fatal("error creating Any struct for test: %w", err)
+	}
+	table2, err := anypb.New(&v1beta2.Table{
+		Columns: []*v1beta2.Column{
+			{
+				Name:     "SomeStr",
+				DataType: "text",
+			},
+		},
+		Profile: &v1beta2.TableProfile{
+			TotalRows: 1,
+		},
+	})
+	if err != nil {
+		t.Fatal("error creating Any struct for test: %w", err)
+	}
 	return []models.Record{
-		models.NewRecord(&assetsv1beta1.Table{
-			Resource: &commonv1beta1.Resource{
-				Urn:  "elasticsearch.index1",
-				Name: "index1",
-				Type: "table",
-			},
-			Schema: &facetsv1beta1.Columns{
-				Columns: []*facetsv1beta1.Column{
-					{
-						Name:     "SomeInt",
-						DataType: "long",
-					},
-					{
-						Name:     "SomeStr",
-						DataType: "text",
-					},
-				},
-			},
-			Profile: &assetsv1beta1.TableProfile{
-				TotalRows: 1,
-			},
+		models.NewRecord(&v1beta2.Asset{
+			Urn:  "elasticsearch.index1",
+			Name: "index1",
+			Type: "table",
+			Data: table1,
 		}),
-		models.NewRecord(&assetsv1beta1.Table{
-			Resource: &commonv1beta1.Resource{
-				Urn:  "elasticsearch.index2",
-				Name: "index2",
-				Type: "table",
-			},
-			Schema: &facetsv1beta1.Columns{
-				Columns: []*facetsv1beta1.Column{
-					{
-						Name:     "SomeInt",
-						DataType: "long",
-					},
-					{
-						Name:     "SomeStr",
-						DataType: "text",
-					},
-				},
-			},
-			Profile: &assetsv1beta1.TableProfile{
-				TotalRows: 1,
-			},
+		models.NewRecord(&v1beta2.Asset{
+			Urn:  "elasticsearch.index2",
+			Name: "index2",
+			Type: "table",
+			Data: table2,
 		}),
 	}
 }

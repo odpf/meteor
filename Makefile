@@ -34,7 +34,7 @@ test-plugins:
 generate-proto: ## regenerate protos
 	@echo " > cloning protobuf from odpf/proton"
 	@echo " > generating protobuf"
-	@buf generate --template buf.gen.yaml https://github.com/odpf/proton/archive/a0bc6dbf2ad91abfebc4bf5f70e275983109baca.zip#strip_components=1 --path odpf/assets
+	@buf generate --template buf.gen.yaml https://github.com/odpf/proton/archive/e3eb17f04366ffe392fb2162663bccfb548b6d81.zip#strip_components=1 --path odpf/assets/v1beta2
 	@echo " > protobuf compilation finished"
 
 lint: ## Lint with golangci-lint

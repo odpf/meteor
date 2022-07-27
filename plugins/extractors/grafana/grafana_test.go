@@ -12,10 +12,10 @@ import (
 	"testing"
 
 	"github.com/odpf/meteor/test/utils"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/plugins/extractors/grafana"
 	"github.com/odpf/meteor/test/mocks"
@@ -56,73 +56,80 @@ func TestInit(t *testing.T) {
 
 func TestExtract(t *testing.T) {
 	t.Run("should extract grafana metadata into meta dashboard", func(t *testing.T) {
-
+		data1, err := anypb.New(&v1beta2.Dashboard{
+			Charts: []*v1beta2.Chart{
+				{
+					Urn:             "HzK8qNW7z.2",
+					Name:            "Panel Title",
+					Type:            "timeseries",
+					Source:          "grafana",
+					Description:     "",
+					Url:             fmt.Sprintf("%s/d/HzK8qNW7z/new-dashboard-copy?viewPanel=2", testServer.URL),
+					DataSource:      "",
+					RawQuery:        "",
+					DashboardUrn:    "grafana.HzK8qNW7z",
+					DashboardSource: "grafana",
+				},
+			},
+		})
+		if err != nil {
+			t.Fatal("error creating Any struct for test: %w", err)
+		}
+		data2, err := anypb.New(&v1beta2.Dashboard{
+			Charts: []*v1beta2.Chart{
+				{
+					Urn:             "5WsKOvW7z.4",
+					Name:            "Panel Random",
+					Type:            "table",
+					Source:          "grafana",
+					Description:     "random description for this panel",
+					Url:             fmt.Sprintf("%s/d/5WsKOvW7z/test-dashboard-updated?viewPanel=4", testServer.URL),
+					DataSource:      "postgres",
+					RawQuery:        "SELECT\n  urn,\n  created_at AS \"time\"\nFROM resources\nORDER BY 1",
+					DashboardUrn:    "grafana.5WsKOvW7z",
+					DashboardSource: "grafana",
+				},
+				{
+					Urn:             "5WsKOvW7z.2",
+					Name:            "Panel Title",
+					Type:            "timeseries",
+					Source:          "grafana",
+					Description:     "",
+					Url:             fmt.Sprintf("%s/d/5WsKOvW7z/test-dashboard-updated?viewPanel=2", testServer.URL),
+					DataSource:      "",
+					RawQuery:        "",
+					DashboardUrn:    "grafana.5WsKOvW7z",
+					DashboardSource: "grafana",
+				},
+			},
+		})
+		if err != nil {
+			t.Fatal("error creating Any struct for test: %w", err)
+		}
 		expectedData := []models.Record{
-			models.NewRecord(&assetsv1beta1.Dashboard{
-				Resource: &commonv1beta1.Resource{
-					Urn:         "grafana.HzK8qNW7z",
-					Name:        "new-dashboard-copy",
-					Service:     "grafana",
-					Url:         fmt.Sprintf("%s/d/HzK8qNW7z/new-dashboard-copy", testServer.URL),
-					Description: "",
-					Type:        "dashboard",
-				},
-				Charts: []*assetsv1beta1.Chart{
-					{
-						Urn:             "HzK8qNW7z.2",
-						Name:            "Panel Title",
-						Type:            "timeseries",
-						Source:          "grafana",
-						Description:     "",
-						Url:             fmt.Sprintf("%s/d/HzK8qNW7z/new-dashboard-copy?viewPanel=2", testServer.URL),
-						DataSource:      "",
-						RawQuery:        "",
-						DashboardUrn:    "grafana.HzK8qNW7z",
-						DashboardSource: "grafana",
-					},
-				},
+			models.NewRecord(&v1beta2.Asset{
+				Urn:         "grafana.HzK8qNW7z",
+				Name:        "new-dashboard-copy",
+				Service:     "grafana",
+				Url:         fmt.Sprintf("%s/d/HzK8qNW7z/new-dashboard-copy", testServer.URL),
+				Description: "",
+				Type:        "dashboard",
+				Data:        data1,
 			}),
-			models.NewRecord(&assetsv1beta1.Dashboard{
-				Resource: &commonv1beta1.Resource{
-					Urn:         "grafana.5WsKOvW7z",
-					Name:        "test-dashboard-updated",
-					Service:     "grafana",
-					Url:         fmt.Sprintf("%s/d/5WsKOvW7z/test-dashboard-updated", testServer.URL),
-					Description: "this is description for testing",
-					Type:        "dashboard",
-				},
-				Charts: []*assetsv1beta1.Chart{
-					{
-						Urn:             "5WsKOvW7z.4",
-						Name:            "Panel Random",
-						Type:            "table",
-						Source:          "grafana",
-						Description:     "random description for this panel",
-						Url:             fmt.Sprintf("%s/d/5WsKOvW7z/test-dashboard-updated?viewPanel=4", testServer.URL),
-						DataSource:      "postgres",
-						RawQuery:        "SELECT\n  urn,\n  created_at AS \"time\"\nFROM resources\nORDER BY 1",
-						DashboardUrn:    "grafana.5WsKOvW7z",
-						DashboardSource: "grafana",
-					},
-					{
-						Urn:             "5WsKOvW7z.2",
-						Name:            "Panel Title",
-						Type:            "timeseries",
-						Source:          "grafana",
-						Description:     "",
-						Url:             fmt.Sprintf("%s/d/5WsKOvW7z/test-dashboard-updated?viewPanel=2", testServer.URL),
-						DataSource:      "",
-						RawQuery:        "",
-						DashboardUrn:    "grafana.5WsKOvW7z",
-						DashboardSource: "grafana",
-					},
-				},
+			models.NewRecord(&v1beta2.Asset{
+				Urn:         "grafana.5WsKOvW7z",
+				Name:        "test-dashboard-updated",
+				Service:     "grafana",
+				Url:         fmt.Sprintf("%s/d/5WsKOvW7z/test-dashboard-updated", testServer.URL),
+				Description: "this is description for testing",
+				Type:        "dashboard",
+				Data:        data2,
 			}),
 		}
 
 		ctx := context.TODO()
 		extractor := grafana.New(utils.Logger)
-		err := extractor.Init(ctx, map[string]interface{}{
+		err = extractor.Init(ctx, map[string]interface{}{
 			"base_url": testServer.URL,
 			"api_key":  "qwerty123",
 		})

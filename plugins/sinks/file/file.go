@@ -8,6 +8,7 @@ import (
 	"strings"
 
 	"github.com/odpf/meteor/models"
+	assetsv1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
 	"github.com/odpf/meteor/utils"
@@ -76,7 +77,7 @@ func (s *Sink) Init(ctx context.Context, config map[string]interface{}) (err err
 }
 
 func (s *Sink) Sink(ctx context.Context, batch []models.Record) (err error) {
-	var data []models.Metadata
+	var data []*assetsv1beta2.Asset
 	for _, record := range batch {
 		data = append(data, record.Data())
 	}
@@ -99,7 +100,7 @@ func (s *Sink) Close() (err error) {
 	return nil
 }
 
-func (s *Sink) ndjsonOut(data []models.Metadata) error {
+func (s *Sink) ndjsonOut(data []*assetsv1beta2.Asset) error {
 	jsnBy, err := ndjson.Marshal(data)
 	if err != nil {
 		return err
@@ -108,7 +109,7 @@ func (s *Sink) ndjsonOut(data []models.Metadata) error {
 	return err
 }
 
-func (s *Sink) yamlOut(data []models.Metadata) error {
+func (s *Sink) yamlOut(data []*assetsv1beta2.Asset) error {
 	ymlByte, err := yaml.Marshal(data)
 	if err != nil {
 		return err

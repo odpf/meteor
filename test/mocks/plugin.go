@@ -6,6 +6,8 @@ import (
 	"github.com/odpf/meteor/models"
 	"github.com/odpf/meteor/plugins"
 	"github.com/stretchr/testify/mock"
+
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 )
 
 type Plugin struct {
@@ -97,7 +99,7 @@ func (m *Emitter) Get() []models.Record {
 	return m.data
 }
 
-func (m *Emitter) GetAllData() (data []models.Metadata) {
+func (m *Emitter) GetAllData() (data []*v1beta2.Asset) {
 	records := m.Get()
 	for _, r := range records {
 		data = append(data, r.Data())

@@ -7,6 +7,8 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
+	"google.golang.org/protobuf/types/known/anypb"
 	"log"
 	"net"
 	"os"
@@ -21,9 +23,6 @@ import (
 
 	"github.com/odpf/meteor/cmd"
 	"github.com/odpf/meteor/config"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
 	_ "github.com/odpf/meteor/plugins/extractors"
 	_ "github.com/odpf/meteor/plugins/processors"
 	_ "github.com/odpf/meteor/plugins/sinks"
@@ -97,7 +96,7 @@ func TestMySqlToKafka(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	var sinkData []*assetsv1beta1.Table
+	var sinkData []*v1beta2.Asset
 	ctx, cancel := context.WithCancel(context.TODO())
 	go func() {
 		err = listenToTopic(ctx, testTopic, &sinkData)
@@ -107,12 +106,13 @@ func TestMySqlToKafka(t *testing.T) {
 	}()
 
 	// run mysql_kafka.yml file
-	cfg, err := config.Load()
+	cfg, err := config.Load("mysql_kafka.yml")
 	if err != nil {
 		t.Error(err)
 	}
-	command := cmd.New(utils.Logger, nil, cfg)
-	command.SetArgs([]string{"run", "mysql_kafka.yml"})
+	command := cmd.RunCmd(utils.Logger, nil, cfg)
+
+	command.SetArgs([]string{"mysql_kafka.yml"})
 	if err := command.Execute(); err != nil {
 		if strings.HasPrefix(err.Error(), "unknown command ") {
 			if !strings.HasSuffix(err.Error(), "\n") {
@@ -130,15 +130,17 @@ func TestMySqlToKafka(t *testing.T) {
 
 	expected := getExpectedTables()
 	assert.Equal(t, len(getExpectedTables()), len(sinkData))
+	fmt.Println("exp table", len(getExpectedTables()))
+	fmt.Println("exp sink table", len(sinkData))
 	for tableNum := 0; tableNum < len(getExpectedTables()); tableNum++ {
-		assert.Equal(t, expected[tableNum].Resource.Urn, sinkData[tableNum].Resource.Urn)
-		assert.Equal(t, expected[tableNum].Resource.Name, sinkData[tableNum].Resource.Name)
-		assert.Equal(t, len(expected[tableNum].Schema.Columns), len(sinkData[tableNum].Schema.Columns))
+		//assert.Equal(t, expected[tableNum].Urn, sinkData[tableNum].Urn)
+		assert.Equal(t, expected[tableNum].Name, sinkData[tableNum].Name)
+		assert.Equal(t, len(expected[tableNum].Data.Value), len(sinkData[tableNum].Data.Value))
 	}
 }
 
 // listenToTopic listens to a topic and stores the data in sinkData
-func listenToTopic(ctx context.Context, topic string, data *[]*assetsv1beta1.Table) error {
+func listenToTopic(ctx context.Context, topic string, data *[]*v1beta2.Asset) error {
 	reader := kafka.NewReader(kafka.ReaderConfig{
 		Brokers: []string{brokerHost},
 		Topic:   topic,
@@ -155,7 +157,7 @@ func listenToTopic(ctx context.Context, topic string, data *[]*assetsv1beta1.Tab
 			break
 
 		}
-		var convertMsg assets.Table
+		var convertMsg v1beta2.Asset
 		if err := proto.Unmarshal(msg.Value, &convertMsg); err != nil {
 			return errors.Wrap(err, "failed to parse kafka message")
 		}
@@ -297,63 +299,62 @@ func mysqlDockerSetup() (purge func() error, err error) {
 }
 
 // getExpectedTables returns the expected tables
-func getExpectedTables() []*assetsv1beta1.Table {
-	return []*assetsv1beta1.Table{
-		{
-			Resource: &commonv1beta1.Resource{
-				Urn:  testDB + ".applicant",
-				Name: "applicant",
+func getExpectedTables() []*v1beta2.Asset {
+	data1, _ := anypb.New(&v1beta2.Table{
+		Columns: []*v1beta2.Column{
+			{
+				Name:       "applicant_id",
+				DataType:   "int",
+				IsNullable: true,
+				Length:     0,
 			},
-			Schema: &facetsv1beta1.Columns{
-				Columns: []*facetsv1beta1.Column{
-					{
-						Name:       "applicant_id",
-						DataType:   "int",
-						IsNullable: true,
-						Length:     0,
-					},
-					{
-						Name:       "first_name",
-						DataType:   "varchar",
-						IsNullable: true,
-						Length:     255,
-					},
-					{
-						Name:       "last_name",
-						DataType:   "varchar",
-						IsNullable: true,
-						Length:     255,
-					},
-				},
+			{
+				Name:       "first_name",
+				DataType:   "varchar",
+				IsNullable: true,
+				Length:     255,
+			},
+			{
+				Name:       "last_name",
+				DataType:   "varchar",
+				IsNullable: true,
+				Length:     255,
 			},
 		},
+	})
+	data2, _ := anypb.New(&v1beta2.Table{
+		Columns: []*v1beta2.Column{
+			{
+				Name:       "department",
+				DataType:   "varchar",
+				IsNullable: true,
+				Length:     255,
+			},
+			{
+				Name:       "job",
+				DataType:   "varchar",
+				IsNullable: true,
+				Length:     255,
+			},
+			{
+				Name:       "job_id",
+				DataType:   "int",
+				IsNullable: true,
+				Length:     0,
+			},
+		},
+	})
+
+	return []*v1beta2.Asset{
 		{
-			Resource: &commonv1beta1.Resource{
-				Urn:  testDB + ".jobs",
-				Name: "jobs",
-			},
-			Schema: &facetsv1beta1.Columns{
-				Columns: []*facetsv1beta1.Column{
-					{
-						Name:       "department",
-						DataType:   "varchar",
-						IsNullable: true,
-						Length:     255,
-					},
-					{
-						Name:       "job",
-						DataType:   "varchar",
-						IsNullable: true,
-						Length:     255,
-					},
-					{
-						Name:       "job_id",
-						DataType:   "int",
-						IsNullable: true,
-						Length:     0,
-					},
-				},
-			},
+			Urn:  testDB + ".applicant",
+			Name: "applicant",
+			Data: data1,
+		},
+		{
+			Urn:  testDB + ".jobs",
+			Name: "jobs",
+			Data: data2,
 		},
 	}
 }

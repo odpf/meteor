@@ -1,2 +1,2 @@
-{"resource":{"urn":"elasticsearch.index1","name":"index1","type":"table"},"profile":{"total_rows":1},"schema":{"columns":[{"name":"SomeInt","data_type":"long"},{"name":"SomeStr","data_type":"text"}]}}
-{"resource":{"urn":"elasticsearch.index2","name":"index2","type":"table"},"profile":{"total_rows":1},"schema":{"columns":[{"name":"SomeInt","data_type":"long"},{"name":"SomeStr","data_type":"text"}]}}
+{"urn":"elasticsearch.index1","name":"index1","type":"table","data":{"type_url":"type.googleapis.com/odpf.assets.v1beta2.Table","value":"CgIIARIPCgdTb21lU3RyGgR0ZXh0"}}
+{"urn":"elasticsearch.index2","name":"index2","type":"table","data":{"type_url":"type.googleapis.com/odpf.assets.v1beta2.Table","value":"CgIIARIPCgdTb21lU3RyGgR0ZXh0"}}

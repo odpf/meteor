@@ -1,25 +1,22 @@
-//go:build plugins
-// +build plugins
-
 package redash_test
 
 import (
 	"context"
 	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"testing"
+
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/plugins/extractors/redash"
 	"github.com/odpf/meteor/test/mocks"
 	"github.com/odpf/meteor/test/utils"
 	util "github.com/odpf/meteor/utils"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"net/http/httptest"
-	"os"
-	"testing"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 var testServer *httptest.Server
@@ -57,44 +54,41 @@ func TestInit(t *testing.T) {
 // TestExtract tests that the extractor returns the expected result
 func TestExtract(t *testing.T) {
 	t.Run("should return dashboard model", func(t *testing.T) {
+		data, err := anypb.New(&v1beta2.Dashboard{})
+		if err != nil {
+			err = fmt.Errorf("error creating Any struct: %w", err)
+			t.Fatal(err)
+		}
 		expectedData := []models.Record{
-			models.NewRecord(&assetsv1beta1.Dashboard{
-				Resource: &commonv1beta1.Resource{
-					Urn:     fmt.Sprintf("redash::%s/dashboard/421", testServer.URL),
-					Name:    "firstDashboard",
-					Service: "redash",
-					Type:    "dashboard",
-				},
-				Charts: nil,
-				Properties: &facetsv1beta1.Properties{
-					Attributes: util.TryParseMapToProto(map[string]interface{}{
-						"user_id": 1,
-						"version": 1,
-						"slug":    "new-dashboard-copy",
-					}),
-				},
+			models.NewRecord(&v1beta2.Asset{
+				Urn:     fmt.Sprintf("redash::%s/dashboard/421", testServer.URL),
+				Name:    "firstDashboard",
+				Service: "redash",
+				Type:    "dashboard",
+				Data:    data,
+				Attributes: util.TryParseMapToProto(map[string]interface{}{
+					"user_id": 1,
+					"version": 1,
+					"slug":    "new-dashboard-copy",
+				}),
 			}),
-			models.NewRecord(&assetsv1beta1.Dashboard{
-				Resource: &commonv1beta1.Resource{
-					Urn:     fmt.Sprintf("redash::%s/dashboard/634", testServer.URL),
-					Name:    "secondDashboard",
-					Service: "redash",
-					Type:    "dashboard",
-				},
-				Charts: nil,
-				Properties: &facetsv1beta1.Properties{
-					Attributes: util.TryParseMapToProto(map[string]interface{}{
-						"user_id": 1,
-						"version": 2,
-						"slug":    "test-dashboard-updated",
-					}),
-				},
+			models.NewRecord(&v1beta2.Asset{
+				Urn:     fmt.Sprintf("redash::%s/dashboard/634", testServer.URL),
+				Name:    "secondDashboard",
+				Service: "redash",
+				Type:    "dashboard",
+				Data:    data,
+				Attributes: util.TryParseMapToProto(map[string]interface{}{
+					"user_id": 1,
+					"version": 2,
+					"slug":    "test-dashboard-updated",
+				}),
 			}),
 		}
 
 		ctx := context.TODO()
 		extractor := redash.New(utils.Logger)
-		err := extractor.Init(ctx, map[string]interface{}{
+		err = extractor.Init(ctx, map[string]interface{}{
 			"base_url": testServer.URL,
 			"api_key":  "checkAPI",
 		})
@@ -113,7 +107,7 @@ func TestExtract(t *testing.T) {
 func NewTestServer() *httptest.Server {
 	mux := http.NewServeMux()
 	mux.HandleFunc("/api/dashboards", func(res http.ResponseWriter, req *http.Request) {
-		res.Write([]byte(`
+		_, err := res.Write([]byte(`
 			{
 				"count": 2,
 				"page": 1,
@@ -192,6 +186,9 @@ func NewTestServer() *httptest.Server {
 		`,
 		),
 		)
+		if err != nil {
+			return
+		}
 	})
 	return httptest.NewServer(mux)
 }

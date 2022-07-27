@@ -6,14 +6,14 @@ import (
 	_ "embed" // used to print the embedded assets
 	"encoding/json"
 	"fmt"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
 	"io/ioutil"
 	"net/http"
 	"time"
 
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
+	"google.golang.org/protobuf/types/known/anypb"
+
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
 	"github.com/odpf/meteor/utils"
@@ -97,24 +97,24 @@ func (e *Extractor) Extract(_ context.Context, emit plugins.Emit) (err error) {
 }
 
 // buildDashboard builds a dashboard from redash server
-func (e *Extractor) buildDashboard(dashboard Results) (data *assetsv1beta1.Dashboard, err error) {
+func (e *Extractor) buildDashboard(dashboard Results) (asset *v1beta2.Asset, err error) {
 	dashboardUrn := models.DashboardURN("redash", e.config.BaseURL, fmt.Sprintf("dashboard/%d", dashboard.Id))
-
-	data = &assetsv1beta1.Dashboard{
-		Resource: &commonv1beta1.Resource{
-			Urn:     dashboardUrn,
-			Name:    dashboard.Name,
-			Service: "redash",
-			Type:    "dashboard",
-		},
-		Charts: nil,
-		Properties: &facetsv1beta1.Properties{
-			Attributes: utils.TryParseMapToProto(map[string]interface{}{
-				"user_id": dashboard.UserId,
-				"version": dashboard.Version,
-				"slug":    dashboard.Slug,
-			}),
-		},
+	data, err := anypb.New(&v1beta2.Dashboard{})
+	if err != nil {
+		err = fmt.Errorf("error creating Any struct: %w", err)
+		return nil, err
+	}
+	asset = &v1beta2.Asset{
+		Urn:     dashboardUrn,
+		Name:    dashboard.Name,
+		Service: "redash",
+		Type:    "dashboard",
+		Data:    data,
+		Attributes: utils.TryParseMapToProto(map[string]interface{}{
+			"user_id": dashboard.UserId,
+			"version": dashboard.Version,
+			"slug":    dashboard.Slug,
+		}),
 	}
 
 	return

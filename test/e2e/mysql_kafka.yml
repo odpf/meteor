@@ -1,10 +1,10 @@
 name: sample
+version: v1beta1
 source:
   name: mysql
   config:
-    user_id: root
-    password: admin
-    host: 127.0.0.1:3306
+    connection_url: root:admin@tcp(127.0.0.1:3306)/
+    identifier: test_db
 sinks:
   - name: kafka
     config:

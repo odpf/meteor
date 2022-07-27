@@ -7,10 +7,10 @@ import (
 	"sort"
 
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
 	"github.com/odpf/meteor/utils"
@@ -132,23 +132,27 @@ func (e *Extractor) extractCollections(ctx context.Context, db *mongo.Database, 
 }
 
 // Build table metadata model from a collection
-func (e *Extractor) buildTable(ctx context.Context, db *mongo.Database, collectionName string) (table *assetsv1beta1.Table, err error) {
+func (e *Extractor) buildTable(ctx context.Context, db *mongo.Database, collectionName string) (table *v1beta2.Asset, err error) {
 	// get total rows
 	totalRows, err := db.Collection(collectionName).EstimatedDocumentCount(ctx)
 	if err != nil {
 		err = errors.Wrap(err, "failed to fetch total no of rows")
 		return
 	}
-
-	table = &assetsv1beta1.Table{
-		Resource: &commonv1beta1.Resource{
-			Urn:  fmt.Sprintf("%s.%s", db.Name(), collectionName),
-			Name: collectionName,
-			Type: "table",
-		},
-		Profile: &assetsv1beta1.TableProfile{
+	data, err := anypb.New(&v1beta2.Table{
+		Profile: &v1beta2.TableProfile{
 			TotalRows: totalRows,
 		},
+	})
+	if err != nil {
+		return nil, errors.Wrap(err, "failed to build Any struct")
+	}
+	//
+	table = &v1beta2.Asset{
+		Urn:  fmt.Sprintf("%s.%s", db.Name(), collectionName),
+		Name: collectionName,
+		Type: "table",
+		Data: data,
 	}
 
 	return

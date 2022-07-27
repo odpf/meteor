@@ -4,14 +4,15 @@ import (
 	"context"
 	_ "embed" // used to print the embedded assets
 	"fmt"
+
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
 	"github.com/odpf/meteor/utils"
 	"github.com/odpf/salt/log"
 	sh "github.com/odpf/shield/proto/v1beta1"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 //go:embed README.md
@@ -88,29 +89,31 @@ func (e *Extractor) Extract(ctx context.Context, emit plugins.Emit) error {
 		if grpErr != nil {
 			return fmt.Errorf("error fetching user groups: %w", err)
 		}
-
-		emit(models.NewRecord(&assetsv1beta1.User{
-			Resource: &commonv1beta1.Resource{
-				Urn:         fmt.Sprintf("%s::%s/%s", service, e.config.Host, user.GetId()),
-				Name:        user.GetName(),
-				Service:     service,
-				Type:        "user",
-				Description: user.GetSlug(),
-			},
+		data, err := anypb.New(&v1beta2.User{
 			Email:    user.GetEmail(),
 			Username: user.GetId(),
 			FullName: user.GetName(),
 			Status:   "active",
-			Memberships: []*assetsv1beta1.Membership{
+			Memberships: []*v1beta2.Membership{
 				{
 					GroupUrn: fmt.Sprintf("%s:%s", grp.Group.GetName(), grp.Group.GetId()),
 					Role:     []string{role.Role.GetName()},
 				},
 			},
-			Timestamps: &commonv1beta1.Timestamp{
-				CreateTime: user.GetCreatedAt(),
-				UpdateTime: user.GetUpdatedAt(),
-			},
+		})
+		if err != nil {
+			err = fmt.Errorf("error creating Any struct: %w", err)
+			return err
+		}
+		emit(models.NewRecord(&v1beta2.Asset{
+			Urn:         fmt.Sprintf("%s::%s/%s", service, e.config.Host, user.GetId()),
+			Name:        user.GetName(),
+			Service:     service,
+			Type:        "user",
+			Description: user.GetSlug(),
+			Data:        data,
+			CreateTime:  user.GetCreatedAt(),
+			UpdateTime:  user.GetUpdatedAt(),
 		}))
 	}
 

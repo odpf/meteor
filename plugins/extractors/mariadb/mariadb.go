@@ -13,10 +13,9 @@ import (
 	"github.com/odpf/meteor/utils"
 	"github.com/odpf/salt/log"
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/anypb"
 
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins/sqlutil"
 )
 
@@ -132,28 +131,29 @@ func (e *Extractor) extractTables(database string) (err error) {
 
 // processTable builds and push table to out channel
 func (e *Extractor) processTable(database string, tableName string) (err error) {
-	var columns []*facetsv1beta1.Column
+	var columns []*v1beta2.Column
 	columns, err = e.extractColumns(tableName)
 	if err != nil {
 		return errors.Wrapf(err, "failed to extract columns")
 	}
-
+	data, err := anypb.New(&v1beta2.Table{
+		Columns: columns,
+	})
+	if err != nil {
+		return errors.Wrap(err, "failed to build Any struct")
+	}
 	// push table to channel
-	e.emit(models.NewRecord(&assetsv1beta1.Table{
-		Resource: &commonv1beta1.Resource{
-			Urn:  fmt.Sprintf("%s.%s", database, tableName),
-			Name: tableName,
-			Type: "table",
-		},
-		Schema: &facetsv1beta1.Columns{
-			Columns: columns,
-		},
+	e.emit(models.NewRecord(&v1beta2.Asset{
+		Urn:  fmt.Sprintf("%s.%s", database, tableName),
+		Name: tableName,
+		Type: "table",
+		Data: data,
 	}))
 	return
 }
 
 // extractColumns extracts columns from a given table
-func (e *Extractor) extractColumns(tableName string) (result []*facetsv1beta1.Column, err error) {
+func (e *Extractor) extractColumns(tableName string) (result []*v1beta2.Column, err error) {
 	sqlStr := `SELECT COLUMN_NAME,column_comment,DATA_TYPE,
 				IS_NULLABLE,IFNULL(CHARACTER_MAXIMUM_LENGTH,0)
 				FROM information_schema.columns
@@ -172,7 +172,7 @@ func (e *Extractor) extractColumns(tableName string) (result []*facetsv1beta1.Co
 			return nil, errors.Wrapf(err, "failed to scan fields from query")
 		}
 
-		result = append(result, &facetsv1beta1.Column{
+		result = append(result, &v1beta2.Column{
 			Name:        fieldName,
 			DataType:    dataType,
 			Description: fieldDesc,

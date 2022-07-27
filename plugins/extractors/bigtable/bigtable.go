@@ -8,9 +8,7 @@ import (
 	"sync"
 
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/registry"
 
 	"cloud.google.com/go/bigtable"
@@ -126,19 +124,16 @@ func (e *Extractor) getTablesInfo(ctx context.Context, emit plugins.Emit) (err e
 					return
 				}
 				familyInfoBytes, _ := json.Marshal(tableInfo.FamilyInfos)
-				emit(models.NewRecord(&assetsv1beta1.Table{
-					Resource: &commonv1beta1.Resource{
-						Urn:     fmt.Sprintf("%s.%s.%s", e.config.ProjectID, instance, table),
-						Name:    table,
-						Service: "bigtable",
-						Type:    "table",
-					},
-					Properties: &facetsv1beta1.Properties{
-						Attributes: utils.TryParseMapToProto(map[string]interface{}{
-							"column_family": string(familyInfoBytes),
-						}),
-					},
-				}))
+				asset := v1beta2.Asset{
+					Urn:     fmt.Sprintf("%s.%s.%s", e.config.ProjectID, instance, table),
+					Name:    table,
+					Service: "bigtable",
+					Type:    "table",
+					Attributes: utils.TryParseMapToProto(map[string]interface{}{
+						"column_family": string(familyInfoBytes),
+					}),
+				}
+				emit(models.NewRecord(&asset))
 
 				wg.Done()
 			}(table)

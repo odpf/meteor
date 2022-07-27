@@ -7,9 +7,7 @@ import (
 	"strings"
 
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
 	"github.com/odpf/meteor/utils"
@@ -120,7 +118,7 @@ func (e *Extractor) Extract(ctx context.Context, emit plugins.Emit) error {
 	return nil
 }
 
-func (e *Extractor) buildJob(ctx context.Context, jobSpec *pb.JobSpecification, project, namespace string) (job *assetsv1beta1.Job, err error) {
+func (e *Extractor) buildJob(ctx context.Context, jobSpec *pb.JobSpecification, project, namespace string) (asset *v1beta2.Asset, err error) {
 	jobResp, err := e.client.GetJobTask(ctx, &pb.GetJobTaskRequest{
 		ProjectName:   project,
 		NamespaceName: namespace,
@@ -140,55 +138,49 @@ func (e *Extractor) buildJob(ctx context.Context, jobSpec *pb.JobSpecification, 
 
 	jobID := fmt.Sprintf("%s.%s.%s", project, namespace, jobSpec.Name)
 	urn := models.JobURN(service, e.config.Host, jobID)
-	job = &assetsv1beta1.Job{
-		Resource: &commonv1beta1.Resource{
-			Urn:         urn,
-			Name:        jobSpec.Name,
-			Service:     service,
-			Description: jobSpec.Description,
-			Type:        "job",
-		},
-		Ownership: &facetsv1beta1.Ownership{
-			Owners: []*facetsv1beta1.Owner{
-				{
-					Urn:   jobSpec.Owner,
-					Email: jobSpec.Owner,
-				},
+	asset = &v1beta2.Asset{
+		Urn:         urn,
+		Name:        jobSpec.Name,
+		Service:     service,
+		Description: jobSpec.Description,
+		Type:        "job",
+		Owners: []*v1beta2.Owner{
+			{
+				Urn:   jobSpec.Owner,
+				Email: jobSpec.Owner,
 			},
 		},
-		Lineage: &facetsv1beta1.Lineage{
+		Lineage: &v1beta2.Lineage{
 			Upstreams:   upstreams,
 			Downstreams: downstreams,
 		},
-		Properties: &facetsv1beta1.Properties{
-			Attributes: utils.TryParseMapToProto(map[string]interface{}{
-				"version":          jobSpec.Version,
-				"project":          project,
-				"namespace":        namespace,
-				"owner":            jobSpec.Owner,
-				"startDate":        jobSpec.StartDate,
-				"endDate":          jobSpec.EndDate,
-				"interval":         jobSpec.Interval,
-				"dependsOnPast":    jobSpec.DependsOnPast,
-				"catchUp":          jobSpec.CatchUp,
-				"taskName":         jobSpec.TaskName,
-				"windowSize":       jobSpec.WindowSize,
-				"windowOffset":     jobSpec.WindowOffset,
-				"windowTruncateTo": jobSpec.WindowTruncateTo,
-				"sql":              jobSpec.Assets["query.sql"],
-				"task": map[string]interface{}{
-					"name":        task.Name,
-					"description": task.Description,
-					"image":       task.Image,
-				},
-			}),
-		},
+		Attributes: utils.TryParseMapToProto(map[string]interface{}{
+			"version":          jobSpec.Version,
+			"project":          project,
+			"namespace":        namespace,
+			"owner":            jobSpec.Owner,
+			"startDate":        jobSpec.StartDate,
+			"endDate":          jobSpec.EndDate,
+			"interval":         jobSpec.Interval,
+			"dependsOnPast":    jobSpec.DependsOnPast,
+			"catchUp":          jobSpec.CatchUp,
+			"taskName":         jobSpec.TaskName,
+			"windowSize":       jobSpec.WindowSize,
+			"windowOffset":     jobSpec.WindowOffset,
+			"windowTruncateTo": jobSpec.WindowTruncateTo,
+			"sql":              jobSpec.Assets["query.sql"],
+			"task": map[string]interface{}{
+				"name":        task.Name,
+				"description": task.Description,
+				"image":       task.Image,
+			},
+		}),
 	}
 
 	return
 }
 
-func (e *Extractor) buildLineage(task *pb.JobTask) (upstreams, downstreams []*commonv1beta1.Resource, err error) {
+func (e *Extractor) buildLineage(task *pb.JobTask) (upstreams, downstreams []*v1beta2.Resource, err error) {
 	upstreams, err = e.buildUpstreams(task)
 	if err != nil {
 		err = errors.Wrap(err, "error building upstreams")
@@ -203,7 +195,7 @@ func (e *Extractor) buildLineage(task *pb.JobTask) (upstreams, downstreams []*co
 	return
 }
 
-func (e *Extractor) buildUpstreams(task *pb.JobTask) (upstreams []*commonv1beta1.Resource, err error) {
+func (e *Extractor) buildUpstreams(task *pb.JobTask) (upstreams []*v1beta2.Resource, err error) {
 	for _, dependency := range task.Dependencies {
 		var urn string
 		urn, err = e.mapURN(dependency.Dependency)
@@ -211,7 +203,7 @@ func (e *Extractor) buildUpstreams(task *pb.JobTask) (upstreams []*commonv1beta1
 			return
 		}
 
-		upstreams = append(upstreams, &commonv1beta1.Resource{
+		upstreams = append(upstreams, &v1beta2.Resource{
 			Urn:     urn,
 			Type:    "table",
 			Service: "bigquery",
@@ -221,7 +213,7 @@ func (e *Extractor) buildUpstreams(task *pb.JobTask) (upstreams []*commonv1beta1
 	return
 }
 
-func (e *Extractor) buildDownstreams(task *pb.JobTask) (downstreams []*commonv1beta1.Resource, err error) {
+func (e *Extractor) buildDownstreams(task *pb.JobTask) (downstreams []*v1beta2.Resource, err error) {
 	if task.Destination == nil {
 		return
 	}
@@ -232,7 +224,7 @@ func (e *Extractor) buildDownstreams(task *pb.JobTask) (downstreams []*commonv1b
 		return
 	}
 
-	downstreams = append(downstreams, &commonv1beta1.Resource{
+	downstreams = append(downstreams, &v1beta2.Resource{
 		Urn:     urn,
 		Type:    "table",
 		Service: "bigquery",

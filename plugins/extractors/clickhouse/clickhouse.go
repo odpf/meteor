@@ -7,12 +7,11 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	_ "github.com/ClickHouse/clickhouse-go" // clickhouse driver
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
 	"github.com/odpf/meteor/utils"
@@ -98,26 +97,32 @@ func (e *Extractor) extractTables(emit plugins.Emit) (err error) {
 			return
 		}
 
-		var columns []*facetsv1beta1.Column
+		var columns []*v1beta2.Column
 		columns, err = e.getColumnsInfo(dbName, tableName)
 		if err != nil {
 			return
 		}
 
-		emit(models.NewRecord(&assetsv1beta1.Table{
-			Resource: &commonv1beta1.Resource{
-				Urn:  fmt.Sprintf("%s.%s", dbName, tableName),
-				Name: tableName,
-				Type: "table",
-			}, Schema: &facetsv1beta1.Columns{
-				Columns: columns,
-			},
-		}))
+		table, err := anypb.New(&v1beta2.Table{
+			Columns: columns,
+		})
+		if err != nil {
+			err = fmt.Errorf("error creating Any struct: %w", err)
+			return err
+		}
+
+		asset := v1beta2.Asset{
+			Urn:  fmt.Sprintf("%s.%s", dbName, tableName),
+			Name: tableName,
+			Type: "table",
+			Data: table,
+		}
+		emit(models.NewRecord(&asset))
 	}
 	return
 }
 
-func (e *Extractor) getColumnsInfo(dbName string, tableName string) (result []*facetsv1beta1.Column, err error) {
+func (e *Extractor) getColumnsInfo(dbName string, tableName string) (result []*v1beta2.Column, err error) {
 	sqlStr := fmt.Sprintf("DESCRIBE TABLE %s.%s", dbName, tableName)
 
 	rows, err := e.db.Query(sqlStr)
@@ -132,7 +137,7 @@ func (e *Extractor) getColumnsInfo(dbName string, tableName string) (result []*f
 		if err != nil {
 			return
 		}
-		result = append(result, &facetsv1beta1.Column{
+		result = append(result, &v1beta2.Column{
 			Name:        colName,
 			DataType:    dataType,
 			Description: colDesc,

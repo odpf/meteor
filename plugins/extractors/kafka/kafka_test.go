@@ -6,6 +6,8 @@ package kafka_test
 import (
 	"context"
 	"errors"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
+	"google.golang.org/protobuf/types/known/anypb"
 	"log"
 	"net"
 
@@ -16,8 +18,6 @@ import (
 	"testing"
 
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/plugins/extractors/kafka"
 	"github.com/odpf/meteor/test/mocks"
@@ -122,42 +122,40 @@ func TestExtract(t *testing.T) {
 		err = extr.Extract(ctx, emitter.Push)
 		assert.NoError(t, err)
 
+		data, err := anypb.New(&v1beta2.Topic{
+			Profile: &v1beta2.TopicProfile{
+				NumberOfPartitions: 1,
+			},
+		})
+		if err != nil {
+			t.Fatal(err)
+		}
+
 		// assert results with expected data
 		expected := []models.Record{
-			models.NewRecord(&assetsv1beta1.Topic{
-				Resource: &commonv1beta1.Resource{
-					Urn:     "kafka::my-kafka-cluster/meteor-test-topic-1",
-					Name:    "meteor-test-topic-1",
-					Service: "kafka",
-					Type:    "topic",
-				},
-				Profile: &assetsv1beta1.TopicProfile{
-					NumberOfPartitions: 1,
-				},
+			models.NewRecord(&v1beta2.Asset{
+				Urn:     "kafka::my-kafka-cluster/meteor-test-topic-1",
+				Name:    "meteor-test-topic-1",
+				Service: "kafka",
+				Type:    "topic",
+				Data:    data,
 			}),
-			models.NewRecord(&assetsv1beta1.Topic{
-				Resource: &commonv1beta1.Resource{
-					Urn:     "kafka::my-kafka-cluster/meteor-test-topic-2",
-					Name:    "meteor-test-topic-2",
-					Service: "kafka",
-					Type:    "topic",
-				},
-				Profile: &assetsv1beta1.TopicProfile{
-					NumberOfPartitions: 1,
-				},
+			models.NewRecord(&v1beta2.Asset{
+				Urn:     "kafka::my-kafka-cluster/meteor-test-topic-2",
+				Name:    "meteor-test-topic-2",
+				Service: "kafka",
+				Type:    "topic",
+				Data:    data,
 			}),
-			models.NewRecord(&assetsv1beta1.Topic{
-				Resource: &commonv1beta1.Resource{
-					Urn:     "kafka::my-kafka-cluster/meteor-test-topic-3",
-					Name:    "meteor-test-topic-3",
-					Service: "kafka",
-					Type:    "topic",
-				},
-				Profile: &assetsv1beta1.TopicProfile{
-					NumberOfPartitions: 1,
-				},
+			models.NewRecord(&v1beta2.Asset{
+				Urn:     "kafka::my-kafka-cluster/meteor-test-topic-3",
+				Name:    "meteor-test-topic-3",
+				Service: "kafka",
+				Type:    "topic",
+				Data:    data,
 			}),
 		}
+
 		// We need this function because the extractor cannot guarantee order
 		// so comparing expected slice and result slice will not be consistent
 		assertResults(t, expected, emitter.Get())
@@ -195,18 +193,18 @@ func newExtractor() *kafka.Extractor {
 func assertResults(t *testing.T, expected []models.Record, result []models.Record) {
 	assert.Len(t, result, len(expected))
 
-	expectedMap := make(map[string]*assetsv1beta1.Topic)
+	expectedMap := make(map[string]*v1beta2.Asset)
 	for _, record := range expected {
-		topic := record.Data().(*assetsv1beta1.Topic)
-		expectedMap[topic.Resource.Urn] = topic
+		expectedAsset := record.Data()
+		expectedMap[expectedAsset.Urn] = expectedAsset
 	}
 
 	for _, record := range result {
-		topic := record.Data().(*assetsv1beta1.Topic)
-		assert.Contains(t, expectedMap, topic.Resource.Urn)
-		assert.Equal(t, expectedMap[topic.Resource.Urn], topic)
+		actualAsset := record.Data()
+		assert.Contains(t, expectedMap, actualAsset.Urn)
+		assert.Equal(t, expectedMap[actualAsset.Urn], actualAsset)
 
 		// delete entry to make sure there is no duplicate
-		delete(expectedMap, topic.Resource.Urn)
+		delete(expectedMap, actualAsset.Urn)
 	}
 }

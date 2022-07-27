@@ -1,72 +1,74 @@
-- resource:
-    urn: elasticsearch.index1
-    name: index1
-    service: ""
-    type: table
-    url: ""
-    description: ""
-  profile:
-    totalrows: 1
-    partitionkey: ""
-    partitionvalue: ""
-    usagecount: 0
-    joins: []
-    filters: []
-  schema:
-    columns:
-        - name: SomeInt
-          description: ""
-          datatype: long
-          isnullable: false
-          length: 0
-          profile: null
-          properties: null
-        - name: SomeStr
-          description: ""
-          datatype: text
-          isnullable: false
-          length: 0
-          profile: null
-          properties: null
-  preview: null
-  ownership: null
+- urn: elasticsearch.index1
+  name: index1
+  service: ""
+  type: table
+  url: ""
+  description: ""
+  data:
+    typeurl: type.googleapis.com/odpf.assets.v1beta2.Table
+    value:
+        - 10
+        - 2
+        - 8
+        - 1
+        - 18
+        - 15
+        - 10
+        - 7
+        - 83
+        - 111
+        - 109
+        - 101
+        - 83
+        - 116
+        - 114
+        - 26
+        - 4
+        - 116
+        - 101
+        - 120
+        - 116
+  attributes: null
+  owners: []
   lineage: null
-  properties: null
-  timestamps: null
+  labels: {}
   event: null
-- resource:
-    urn: elasticsearch.index2
-    name: index2
-    service: ""
-    type: table
-    url: ""
-    description: ""
-  profile:
-    totalrows: 1
-    partitionkey: ""
-    partitionvalue: ""
-    usagecount: 0
-    joins: []
-    filters: []
-  schema:
-    columns:
-        - name: SomeInt
-          description: ""
-          datatype: long
-          isnullable: false
-          length: 0
-          profile: null
-          properties: null
-        - name: SomeStr
-          description: ""
-          datatype: text
-          isnullable: false
-          length: 0
-          profile: null
-          properties: null
-  preview: null
-  ownership: null
+  createtime: null
+  updatetime: null
+- urn: elasticsearch.index2
+  name: index2
+  service: ""
+  type: table
+  url: ""
+  description: ""
+  data:
+    typeurl: type.googleapis.com/odpf.assets.v1beta2.Table
+    value:
+        - 10
+        - 2
+        - 8
+        - 1
+        - 18
+        - 15
+        - 10
+        - 7
+        - 83
+        - 111
+        - 109
+        - 101
+        - 83
+        - 116
+        - 114
+        - 26
+        - 4
+        - 116
+        - 101
+        - 120
+        - 116
+  attributes: null
+  owners: []
   lineage: null
-  properties: null
-  timestamps: null
+  labels: {}
   event: null
+  createtime: null
+  updatetime: null

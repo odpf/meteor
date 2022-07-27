@@ -13,7 +13,6 @@ import (
 
 	"github.com/dnaeon/go-vcr/v2/cassette"
 	"github.com/dnaeon/go-vcr/v2/recorder"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/test/mocks"
 	"github.com/odpf/meteor/test/utils"
@@ -71,8 +70,8 @@ func TestExtract(t *testing.T) {
 
 		var urns []string
 		for _, record := range emitter.Get() {
-			table := record.Data().(*assetsv1beta1.Table)
-			urns = append(urns, table.Resource.Urn)
+			asset := record.Data()
+			urns = append(urns, asset.Urn)
 
 		}
 		assert.Equal(t, 86, len(urns))

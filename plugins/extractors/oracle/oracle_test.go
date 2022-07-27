@@ -11,10 +11,9 @@ import (
 	"testing"
 
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/test/utils"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"database/sql"
 
@@ -102,7 +101,7 @@ func TestExtract(t *testing.T) {
 		err = extr.Extract(ctx, emitter.Push)
 
 		assert.NoError(t, err)
-		assert.Equal(t, getExpected(), emitter.Get())
+		assert.Equal(t, getExpected(t), emitter.Get())
 	})
 }
 
@@ -153,70 +152,74 @@ func execute(db *sql.DB, queries []string) (err error) {
 	return
 }
 
-func getExpected() []models.Record {
+func getExpected(t *testing.T) []models.Record {
+	data1, err := anypb.New(&v1beta2.Table{
+		Profile: &v1beta2.TableProfile{
+			TotalRows: 3,
+		},
+		Columns: []*v1beta2.Column{
+			{
+				Name:     "EMPID",
+				DataType: "NUMBER",
+				Length:   22,
+			},
+			{
+				Name:     "NAME",
+				DataType: "VARCHAR2",
+				Length:   30,
+			},
+			{
+				Name:       "SALARY",
+				DataType:   "NUMBER",
+				IsNullable: true,
+				Length:     22,
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(fmt.Println(err, "failed to build Any struct"))
+	}
+	data2, err := anypb.New(&v1beta2.Table{
+		Profile: &v1beta2.TableProfile{
+			TotalRows: 4,
+		},
+		Columns: []*v1beta2.Column{
+			{
+				Name:     "ID",
+				DataType: "NUMBER",
+				Length:   22,
+			},
+			{
+				Name:        "TITLE",
+				Description: "Department Name",
+				DataType:    "VARCHAR2",
+				Length:      20,
+			},
+			{
+				Name:       "BUDGET",
+				DataType:   "FLOAT",
+				IsNullable: true,
+				Length:     22,
+			},
+		},
+	})
+	if err != nil {
+		t.Fatal(fmt.Println(err, "failed to build Any struct"))
+	}
 	return []models.Record{
-		models.NewRecord(&assetsv1beta1.Table{
-			Resource: &commonv1beta1.Resource{
-				Urn:     "XE.EMPLOYEE",
-				Name:    "EMPLOYEE",
-				Service: "Oracle",
-				Type:    "table",
-			},
-			Profile: &assetsv1beta1.TableProfile{
-				TotalRows: 3,
-			},
-			Schema: &facetsv1beta1.Columns{
-				Columns: []*facetsv1beta1.Column{
-					{
-						Name:     "EMPID",
-						DataType: "NUMBER",
-						Length:   22,
-					},
-					{
-						Name:     "NAME",
-						DataType: "VARCHAR2",
-						Length:   30,
-					},
-					{
-						Name:       "SALARY",
-						DataType:   "NUMBER",
-						IsNullable: true,
-						Length:     22,
-					},
-				},
-			},
+		models.NewRecord(&v1beta2.Asset{
+			Urn:     "XE.EMPLOYEE",
+			Name:    "EMPLOYEE",
+			Service: "Oracle",
+			Type:    "table",
+			Data:    data1,
 		}),
-		models.NewRecord(&assetsv1beta1.Table{
-			Resource: &commonv1beta1.Resource{
-				Urn:     "XE.DEPARTMENT",
-				Name:    "DEPARTMENT",
-				Service: "Oracle",
-				Type:    "table",
-			},
-			Profile: &assetsv1beta1.TableProfile{
-				TotalRows: 4,
-			},
-			Schema: &facetsv1beta1.Columns{
-				Columns: []*facetsv1beta1.Column{
-					{
-						Name:     "ID",
-						DataType: "NUMBER",
-						Length:   22,
-					},
-					{
-						Name:        "TITLE",
-						Description: "Department Name",
-						DataType:    "VARCHAR2",
-						Length:      20,
-					},
-					{
-						Name:       "BUDGET",
-						DataType:   "FLOAT",
-						IsNullable: true,
-						Length:     22,
-					},
-				},
-			},
+		models.NewRecord(&v1beta2.Asset{
+			Urn:     "XE.DEPARTMENT",
+			Name:    "DEPARTMENT",
+			Service: "Oracle",
+			Type:    "table",
+			Data:    data2,
 		}),
 	}
 }

@@ -8,12 +8,11 @@ import (
 	"time"
 
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
 	"github.com/odpf/meteor/utils"
@@ -102,7 +101,7 @@ func (e *Extractor) Extract(ctx context.Context, emit plugins.Emit) (err error) 
 	return nil
 }
 
-func (e *Extractor) buildDashboard(d Dashboard) (data *assetsv1beta1.Dashboard, err error) {
+func (e *Extractor) buildDashboard(d Dashboard) (asset *v1beta2.Asset, err error) {
 	// we fetch dashboard again individually to get more fields
 	dashboard, err := e.client.GetDashboard(d.ID)
 	if err != nil {
@@ -114,34 +113,35 @@ func (e *Extractor) buildDashboard(d Dashboard) (data *assetsv1beta1.Dashboard, 
 	charts := e.buildCharts(dashboardUrn, dashboard)
 	dashboardUpstreams := e.buildDashboardUpstreams(charts)
 
-	data = &assetsv1beta1.Dashboard{
-		Resource: &commonv1beta1.Resource{
-			Urn:         dashboardUrn,
-			Name:        dashboard.Name,
-			Service:     "metabase",
-			Type:        "dashboard",
-			Description: dashboard.Description,
-		},
+	data, err := anypb.New(&v1beta2.Dashboard{
 		Charts: charts,
-		Properties: &facetsv1beta1.Properties{
-			Attributes: utils.TryParseMapToProto(map[string]interface{}{
-				"id":            dashboard.ID,
-				"collection_id": dashboard.CollectionID,
-				"creator_id":    dashboard.CreatorID,
-			}),
-		},
-		Timestamps: &commonv1beta1.Timestamp{
-			CreateTime: timestamppb.New(time.Time(dashboard.CreatedAt)),
-			UpdateTime: timestamppb.New(time.Time(dashboard.UpdatedAt)),
-		},
-		Lineage: &facetsv1beta1.Lineage{
+	})
+	if err != nil {
+		err = fmt.Errorf("error creating Any struct: %w", err)
+	}
+
+	asset = &v1beta2.Asset{
+		Urn:         dashboardUrn,
+		Name:        dashboard.Name,
+		Service:     "metabase",
+		Type:        "dashboard",
+		Description: dashboard.Description,
+		Data:        data,
+		Attributes: utils.TryParseMapToProto(map[string]interface{}{
+			"id":            dashboard.ID,
+			"collection_id": dashboard.CollectionID,
+			"creator_id":    dashboard.CreatorID,
+		}),
+		CreateTime: timestamppb.New(time.Time(dashboard.CreatedAt)),
+		UpdateTime: timestamppb.New(time.Time(dashboard.UpdatedAt)),
+		Lineage: &v1beta2.Lineage{
 			Upstreams: dashboardUpstreams,
 		},
 	}
 	return
 }
 
-func (e *Extractor) buildCharts(dashboardUrn string, dashboard Dashboard) (charts []*assetsv1beta1.Chart) {
+func (e *Extractor) buildCharts(dashboardUrn string, dashboard Dashboard) (charts []*v1beta2.Chart) {
 	for _, oc := range dashboard.OrderedCards {
 		chart, err := e.buildChart(oc.Card, dashboardUrn)
 		if err != nil {
@@ -154,38 +154,36 @@ func (e *Extractor) buildCharts(dashboardUrn string, dashboard Dashboard) (chart
 	return
 }
 
-func (e *Extractor) buildChart(card Card, dashboardUrn string) (chart *assetsv1beta1.Chart, err error) {
-	var upstreams []*commonv1beta1.Resource
+func (e *Extractor) buildChart(card Card, dashboardUrn string) (chart *v1beta2.Chart, err error) {
+	var upstreams []*v1beta2.Resource
 	upstreams, err = e.buildUpstreams(card)
 	if err != nil {
 		e.logger.Warn("error building upstreams for a card", "card_id", card.ID, "err", err)
 	}
 
-	return &assetsv1beta1.Chart{
+	return &v1beta2.Chart{
 		Urn:          fmt.Sprintf("metabase::%s/card/%d", e.config.InstanceLabel, card.ID),
 		DashboardUrn: dashboardUrn,
 		Source:       "metabase",
 		Name:         card.Name,
 		Description:  card.Description,
-		Properties: &facetsv1beta1.Properties{
-			Attributes: utils.TryParseMapToProto(map[string]interface{}{
-				"id":                     card.ID,
-				"collection_id":          card.CollectionID,
-				"creator_id":             card.CreatorID,
-				"database_id":            card.DatabaseID,
-				"table_id":               card.TableID,
-				"query_average_duration": card.QueryAverageDuration,
-				"display":                card.Display,
-				"archived":               card.Archived,
-			}),
-		},
-		Lineage: &facetsv1beta1.Lineage{
+		Attributes: utils.TryParseMapToProto(map[string]interface{}{
+			"id":                     card.ID,
+			"collection_id":          card.CollectionID,
+			"creator_id":             card.CreatorID,
+			"database_id":            card.DatabaseID,
+			"table_id":               card.TableID,
+			"query_average_duration": card.QueryAverageDuration,
+			"display":                card.Display,
+			"archived":               card.Archived,
+		}),
+		Lineage: &v1beta2.Lineage{
 			Upstreams: upstreams,
 		},
 	}, nil
 }
 
-func (e *Extractor) buildUpstreams(card Card) (upstreams []*commonv1beta1.Resource, err error) {
+func (e *Extractor) buildUpstreams(card Card) (upstreams []*v1beta2.Resource, err error) {
 	switch card.DatasetQuery.Type {
 	case datasetQueryTypeQuery:
 		upstreams, err = e.buildUpstreamsFromQuery(card)
@@ -204,7 +202,7 @@ func (e *Extractor) buildUpstreams(card Card) (upstreams []*commonv1beta1.Resour
 	}
 }
 
-func (e *Extractor) buildUpstreamsFromQuery(card Card) (upstreams []*commonv1beta1.Resource, err error) {
+func (e *Extractor) buildUpstreamsFromQuery(card Card) (upstreams []*v1beta2.Resource, err error) {
 	table, err := e.client.GetTable(card.DatasetQuery.Query.SourceTable)
 	if err != nil {
 		err = errors.Wrap(err, "error getting table")
@@ -212,7 +210,7 @@ func (e *Extractor) buildUpstreamsFromQuery(card Card) (upstreams []*commonv1bet
 	}
 
 	service, cluster, dbName := e.extractDbComponent(table.Db)
-	upstreams = append(upstreams, &commonv1beta1.Resource{
+	upstreams = append(upstreams, &v1beta2.Resource{
 		Urn:     e.buildURN(service, cluster, dbName, table.Name),
 		Service: service,
 		Type:    "table",
@@ -221,7 +219,7 @@ func (e *Extractor) buildUpstreamsFromQuery(card Card) (upstreams []*commonv1bet
 	return
 }
 
-func (e *Extractor) buildUpstreamsFromNative(card Card) (upstreams []*commonv1beta1.Resource, err error) {
+func (e *Extractor) buildUpstreamsFromNative(card Card) (upstreams []*v1beta2.Resource, err error) {
 	database, err := e.client.GetDatabase(card.DatasetQuery.Database)
 	if err != nil {
 		err = errors.Wrap(err, "error getting database")
@@ -236,7 +234,7 @@ func (e *Extractor) buildUpstreamsFromNative(card Card) (upstreams []*commonv1be
 
 	service, cluster, dbName := e.extractDbComponent(database)
 	for _, tableName := range tableNames {
-		upstreams = append(upstreams, &commonv1beta1.Resource{
+		upstreams = append(upstreams, &v1beta2.Resource{
 			Urn:     e.buildURN(service, cluster, dbName, tableName),
 			Service: service,
 			Type:    "table",
@@ -246,7 +244,7 @@ func (e *Extractor) buildUpstreamsFromNative(card Card) (upstreams []*commonv1be
 	return
 }
 
-func (e *Extractor) buildDashboardUpstreams(charts []*assetsv1beta1.Chart) (upstreams []*commonv1beta1.Resource) {
+func (e *Extractor) buildDashboardUpstreams(charts []*v1beta2.Chart) (upstreams []*v1beta2.Resource) {
 	existing := map[string]bool{}
 	for _, chart := range charts {
 		if chart.Lineage == nil {

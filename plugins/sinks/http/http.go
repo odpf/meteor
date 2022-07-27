@@ -74,7 +74,7 @@ func (s *Sink) Init(ctx context.Context, configMap map[string]interface{}) (err 
 func (s *Sink) Sink(ctx context.Context, batch []models.Record) (err error) {
 	for _, record := range batch {
 		metadata := record.Data()
-		s.logger.Info("sinking record to http", "record", metadata.GetResource().Urn)
+		s.logger.Info("sinking record to http", "record", metadata.Urn)
 		payload, err := json.Marshal(metadata)
 		if err != nil {
 			return errors.Wrap(err, "failed to build http payload")
@@ -83,7 +83,7 @@ func (s *Sink) Sink(ctx context.Context, batch []models.Record) (err error) {
 			return errors.Wrap(err, "error sending data")
 		}
 
-		s.logger.Info("successfully sinked record to http", "record", metadata.GetResource().Urn)
+		s.logger.Info("successfully sinked record to http", "record", metadata.Urn)
 	}
 
 	return

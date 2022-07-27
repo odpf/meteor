@@ -3,18 +3,19 @@ package redshift
 import (
 	"context"
 	_ "embed" // used to print the embedded assets
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/redshiftdataapiservice"
 	"github.com/aws/aws-sdk-go/service/redshiftdataapiservice/redshiftdataapiserviceiface"
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
 	"github.com/odpf/meteor/utils"
 	"github.com/odpf/salt/log"
+	"google.golang.org/protobuf/types/known/anypb"
 )
 
 //go:embed README.md
@@ -174,8 +175,8 @@ func (e *Extractor) GetTables(dbName string) (list []string, err error) {
 }
 
 // getTableMetadata prepares the list of tables and the attached metadata
-func (e *Extractor) getTableMetadata(dbName string, tableName string) (result *assetsv1beta1.Table, err error) {
-	var columns []*facetsv1beta1.Column
+func (e *Extractor) getTableMetadata(dbName string, tableName string) (result *v1beta2.Asset, err error) {
+	var columns []*v1beta2.Column
 	colMetadata, err := e.GetColumn(dbName, tableName)
 	if err != nil {
 		return result, nil
@@ -184,17 +185,19 @@ func (e *Extractor) getTableMetadata(dbName string, tableName string) (result *a
 	if err != nil {
 		return result, nil
 	}
-
-	result = &assetsv1beta1.Table{
-		Resource: &commonv1beta1.Resource{
-			Urn:     models.TableURN("redshift", e.config.AWSRegion, dbName, tableName),
-			Name:    tableName,
-			Type:    "table",
-			Service: "redshift",
-		},
-		Schema: &facetsv1beta1.Columns{
-			Columns: columns,
-		},
+	data, err := anypb.New(&v1beta2.Table{
+		Columns: columns,
+	})
+	if err != nil {
+		err = fmt.Errorf("error creating Any struct: %w", err)
+		return nil, err
+	}
+	result = &v1beta2.Asset{
+		Urn:     models.TableURN("redshift", e.config.AWSRegion, dbName, tableName),
+		Name:    tableName,
+		Type:    "table",
+		Service: "redshift",
+		Data:    data,
 	}
 
 	return
@@ -221,10 +224,10 @@ func (e *Extractor) GetColumn(dbName string, tableName string) (result []*redshi
 }
 
 // getColumnMetadata prepares the list of columns and the attached metadata
-func (e *Extractor) getColumnMetadata(columnMetadata []*redshiftdataapiservice.ColumnMetadata) (result []*facetsv1beta1.Column, err error) {
-	var tempResults []*facetsv1beta1.Column
+func (e *Extractor) getColumnMetadata(columnMetadata []*redshiftdataapiservice.ColumnMetadata) (result []*v1beta2.Column, err error) {
+	var tempResults []*v1beta2.Column
 	for _, column := range columnMetadata {
-		var tempResult facetsv1beta1.Column
+		var tempResult v1beta2.Column
 		tempResult.Name = aws.StringValue(column.Name)
 		tempResult.Description = aws.StringValue(column.Label)
 		tempResult.DataType = aws.StringValue(column.TypeName)

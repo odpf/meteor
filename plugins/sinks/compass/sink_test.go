@@ -15,9 +15,7 @@ import (
 	"github.com/odpf/meteor/utils"
 
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/plugins/sinks/compass"
 	"github.com/stretchr/testify/assert"
@@ -69,7 +67,7 @@ func TestSink(t *testing.T) {
 			t.Fatal(err)
 		}
 
-		data := &assetsv1beta1.Topic{Resource: &commonv1beta1.Resource{}}
+		data := &v1beta2.Asset{}
 		err = compassSink.Sink(ctx, []models.Record{models.NewRecord(data)})
 		assert.Equal(t, errMessage, err.Error())
 	})
@@ -90,7 +88,7 @@ func TestSink(t *testing.T) {
 					t.Fatal(err)
 				}
 
-				data := &assetsv1beta1.Topic{Resource: &commonv1beta1.Resource{}}
+				data := &v1beta2.Asset{}
 				err = compassSink.Sink(ctx, []models.Record{models.NewRecord(data)})
 				assert.True(t, errors.Is(err, plugins.RetryError{}))
 			})
@@ -98,23 +96,19 @@ func TestSink(t *testing.T) {
 	})
 
 	t.Run("should return error for various invalid labels", func(t *testing.T) {
-		testData := &assetsv1beta1.User{
-			Resource: &commonv1beta1.Resource{
-				Urn:         "my-topic-urn",
-				Name:        "my-topic",
-				Service:     "kafka",
-				Type:        "topic",
-				Description: "topic information",
-			},
-			Properties: &facetsv1beta1.Properties{
-				Attributes: utils.TryParseMapToProto(map[string]interface{}{
-					"attrA": "valueAttrA",
-					"attrB": "valueAttrB",
-				}),
-				Labels: map[string]string{
-					"labelA": "valueLabelA",
-					"labelB": "valueLabelB",
-				},
+		testData := &v1beta2.Asset{
+			Urn:         "my-topic-urn",
+			Name:        "my-topic",
+			Service:     "kafka",
+			Type:        "topic",
+			Description: "topic information",
+			Attributes: utils.TryParseMapToProto(map[string]interface{}{
+				"attrA": "valueAttrA",
+				"attrB": "valueAttrB",
+			}),
+			Labels: map[string]string{
+				"labelA": "valueLabelA",
+				"labelB": "valueLabelB",
 			},
 		}
 		testPayload := compass.RequestPayload{
@@ -176,20 +170,18 @@ func TestSink(t *testing.T) {
 
 	successTestCases := []struct {
 		description string
-		data        models.Metadata
+		data        *v1beta2.Asset
 		config      map[string]interface{}
 		expected    compass.RequestPayload
 	}{
 		{
 			description: "should create the right request to compass",
-			data: &assetsv1beta1.User{
-				Resource: &commonv1beta1.Resource{
-					Urn:         "my-topic-urn",
-					Name:        "my-topic",
-					Service:     "kafka",
-					Type:        "topic",
-					Description: "topic information",
-				},
+			data: &v1beta2.Asset{
+				Urn:         "my-topic-urn",
+				Name:        "my-topic",
+				Service:     "kafka",
+				Type:        "topic",
+				Description: "topic information",
 			},
 			config: map[string]interface{}{
 				"host": host,
@@ -206,23 +198,19 @@ func TestSink(t *testing.T) {
 		},
 		{
 			description: "should build compass labels if labels is defined in config",
-			data: &assetsv1beta1.Topic{
-				Resource: &commonv1beta1.Resource{
-					Urn:         "my-topic-urn",
-					Name:        "my-topic",
-					Service:     "kafka",
-					Type:        "topic",
-					Description: "topic information",
-				},
-				Properties: &facetsv1beta1.Properties{
-					Attributes: utils.TryParseMapToProto(map[string]interface{}{
-						"attrA": "valueAttrA",
-						"attrB": "valueAttrB",
-					}),
-					Labels: map[string]string{
-						"labelA": "valueLabelA",
-						"labelB": "valueLabelB",
-					},
+			data: &v1beta2.Asset{
+				Urn:         "my-topic-urn",
+				Name:        "my-topic",
+				Service:     "kafka",
+				Type:        "topic",
+				Description: "topic information",
+				Attributes: utils.TryParseMapToProto(map[string]interface{}{
+					"attrA": "valueAttrA",
+					"attrB": "valueAttrB",
+				}),
+				Labels: map[string]string{
+					"labelA": "valueLabelA",
+					"labelB": "valueLabelB",
 				},
 			},
 			config: map[string]interface{}{
@@ -248,16 +236,14 @@ func TestSink(t *testing.T) {
 		},
 		{
 			description: "should send upstreams if data has upstreams",
-			data: &assetsv1beta1.Topic{
-				Resource: &commonv1beta1.Resource{
-					Urn:         "my-topic-urn",
-					Name:        "my-topic",
-					Service:     "kafka",
-					Type:        "topic",
-					Description: "topic information",
-				},
-				Lineage: &facetsv1beta1.Lineage{
-					Upstreams: []*commonv1beta1.Resource{
+			data: &v1beta2.Asset{
+				Urn:         "my-topic-urn",
+				Name:        "my-topic",
+				Service:     "kafka",
+				Type:        "topic",
+				Description: "topic information",
+				Lineage: &v1beta2.Lineage{
+					Upstreams: []*v1beta2.Resource{
 						{
 							Urn:     "urn-1",
 							Type:    "type-a",
@@ -298,16 +284,14 @@ func TestSink(t *testing.T) {
 		},
 		{
 			description: "should send downstreams if data has downstreams",
-			data: &assetsv1beta1.Topic{
-				Resource: &commonv1beta1.Resource{
-					Urn:         "my-topic-urn",
-					Name:        "my-topic",
-					Service:     "kafka",
-					Type:        "topic",
-					Description: "topic information",
-				},
-				Lineage: &facetsv1beta1.Lineage{
-					Downstreams: []*commonv1beta1.Resource{
+			data: &v1beta2.Asset{
+				Urn:         "my-topic-urn",
+				Name:        "my-topic",
+				Service:     "kafka",
+				Type:        "topic",
+				Description: "topic information",
+				Lineage: &v1beta2.Lineage{
+					Downstreams: []*v1beta2.Resource{
 						{
 							Urn:     "urn-1",
 							Type:    "type-a",
@@ -348,34 +332,30 @@ func TestSink(t *testing.T) {
 		},
 		{
 			description: "should send owners if data has ownership",
-			data: &assetsv1beta1.Topic{
-				Resource: &commonv1beta1.Resource{
-					Urn:         "my-topic-urn",
-					Name:        "my-topic",
-					Service:     "kafka",
-					Type:        "topic",
-					Description: "topic information",
-				},
-				Ownership: &facetsv1beta1.Ownership{
-					Owners: []*facetsv1beta1.Owner{
-						{
-							Urn:   "urn-1",
-							Name:  "owner-a",
-							Role:  "role-a",
-							Email: "email-1",
-						},
-						{
-							Urn:   "urn-2",
-							Name:  "owner-b",
-							Role:  "role-b",
-							Email: "email-2",
-						},
-						{
-							Urn:   "urn-3",
-							Name:  "owner-c",
-							Role:  "role-c",
-							Email: "email-3",
-						},
+			data: &v1beta2.Asset{
+				Urn:         "my-topic-urn",
+				Name:        "my-topic",
+				Service:     "kafka",
+				Type:        "topic",
+				Description: "topic information",
+				Owners: []*v1beta2.Owner{
+					{
+						Urn:   "urn-1",
+						Name:  "owner-a",
+						Role:  "role-a",
+						Email: "email-1",
+					},
+					{
+						Urn:   "urn-2",
+						Name:  "owner-b",
+						Role:  "role-b",
+						Email: "email-2",
+					},
+					{
+						Urn:   "urn-3",
+						Name:  "owner-c",
+						Role:  "role-c",
+						Email: "email-3",
 					},
 				},
 			},
@@ -414,14 +394,12 @@ func TestSink(t *testing.T) {
 		},
 		{
 			description: "should send headers if get populated in config",
-			data: &assetsv1beta1.Topic{
-				Resource: &commonv1beta1.Resource{
-					Urn:         "my-topic-urn",
-					Name:        "my-topic",
-					Service:     "kafka",
-					Type:        "topic",
-					Description: "topic information",
-				},
+			data: &v1beta2.Asset{
+				Urn:         "my-topic-urn",
+				Name:        "my-topic",
+				Service:     "kafka",
+				Type:        "topic",
+				Description: "topic information",
 			},
 			config: map[string]interface{}{
 				"host": host,

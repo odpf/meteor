@@ -6,10 +6,10 @@ import (
 	"fmt"
 
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
 	kafka "github.com/segmentio/kafka-go"
@@ -112,8 +112,12 @@ func (e *Extractor) Extract(ctx context.Context, emit plugins.Emit) (err error) 
 		if isDefaultTopic {
 			continue
 		}
-
-		record := models.NewRecord(e.buildTopic(topic, numOfPartitions))
+		asset, err := e.buildAsset(topic, numOfPartitions)
+		if err != nil {
+			e.logger.Error("failed to build asset", "err", err, "topic", topic)
+			continue
+		}
+		record := models.NewRecord(asset)
 		emit(record)
 	}
 
@@ -121,18 +125,23 @@ func (e *Extractor) Extract(ctx context.Context, emit plugins.Emit) (err error) 
 }
 
 // Build topic metadata model using a topic and number of partitions
-func (e *Extractor) buildTopic(topic string, numOfPartitions int) *assetsv1beta1.Topic {
-	return &assetsv1beta1.Topic{
-		Resource: &commonv1beta1.Resource{
-			Urn:     fmt.Sprintf("kafka::%s/%s", e.config.Label, topic),
-			Name:    topic,
-			Service: "kafka",
-			Type:    "topic",
-		},
-		Profile: &assetsv1beta1.TopicProfile{
+func (e *Extractor) buildAsset(topicName string, numOfPartitions int) (asset *v1beta2.Asset, err error) {
+	topic, err := anypb.New(&v1beta2.Topic{
+		Profile: &v1beta2.TopicProfile{
 			NumberOfPartitions: int64(numOfPartitions),
 		},
+	})
+	if err != nil {
+		e.logger.Warn("error creating Any struct", "error", err)
 	}
+
+	return &v1beta2.Asset{
+		Urn:     fmt.Sprintf("kafka::%s/%s", e.config.Label, topicName),
+		Name:    topicName,
+		Service: "kafka",
+		Type:    "topic",
+		Data:    topic,
+	}, nil
 }
 
 func init() {

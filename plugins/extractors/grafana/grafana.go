@@ -7,10 +7,10 @@ import (
 	"net/http"
 
 	"github.com/pkg/errors"
+	"google.golang.org/protobuf/types/known/anypb"
 
 	"github.com/odpf/meteor/models"
-	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
+	v1beta2 "github.com/odpf/meteor/models/odpf/assets/v1beta2"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
 	"github.com/odpf/meteor/utils"
@@ -86,7 +86,10 @@ func (e *Extractor) Extract(ctx context.Context, emit plugins.Emit) (err error) 
 	}
 
 	for _, dashboardDetail := range dashboardDetails {
-		dashboard := e.grafanaDashboardToMeteorDashboard(dashboardDetail)
+		dashboard, err := e.grafanaDashboardToMeteorDashboard(dashboardDetail)
+		if err != nil {
+			return errors.Wrap(err, "failed to build Any struct")
+		}
 		emit(models.NewRecord(dashboard))
 	}
 
@@ -94,32 +97,36 @@ func (e *Extractor) Extract(ctx context.Context, emit plugins.Emit) (err error) 
 }
 
 // grafanaDashboardToMeteorDashboard converts a grafana dashboard to a meteor dashboard
-func (e *Extractor) grafanaDashboardToMeteorDashboard(dashboard DashboardDetail) *assetsv1beta1.Dashboard {
-	charts := make([]*assetsv1beta1.Chart, len(dashboard.Dashboard.Panels))
+func (e *Extractor) grafanaDashboardToMeteorDashboard(dashboard DashboardDetail) (*v1beta2.Asset, error) {
+	charts := make([]*v1beta2.Chart, len(dashboard.Dashboard.Panels))
 	for i, panel := range dashboard.Dashboard.Panels {
 		c := e.grafanaPanelToMeteorChart(panel, dashboard.Dashboard.UID, dashboard.Meta.URL)
 		charts[i] = &c
 	}
-	return &assetsv1beta1.Dashboard{
-		Resource: &commonv1beta1.Resource{
-			Urn:         fmt.Sprintf("grafana.%s", dashboard.Dashboard.UID),
-			Name:        dashboard.Meta.Slug,
-			Type:        "dashboard",
-			Service:     "grafana",
-			Url:         dashboard.Meta.URL,
-			Description: dashboard.Dashboard.Description,
-		},
+	data, err := anypb.New(&v1beta2.Dashboard{
 		Charts: charts,
+	})
+	if err != nil {
+		return nil, err
 	}
+	return &v1beta2.Asset{
+		Urn:         fmt.Sprintf("grafana.%s", dashboard.Dashboard.UID),
+		Name:        dashboard.Meta.Slug,
+		Type:        "dashboard",
+		Service:     "grafana",
+		Url:         dashboard.Meta.URL,
+		Description: dashboard.Dashboard.Description,
+		Data:        data,
+	}, nil
 }
 
 // grafanaPanelToMeteorChart converts a grafana panel to a meteor chart
-func (e *Extractor) grafanaPanelToMeteorChart(panel Panel, dashboardUID string, metaURL string) assetsv1beta1.Chart {
+func (e *Extractor) grafanaPanelToMeteorChart(panel Panel, dashboardUID string, metaURL string) v1beta2.Chart {
 	var rawQuery string
 	if len(panel.Targets) > 0 {
 		rawQuery = panel.Targets[0].RawSQL
 	}
-	return assetsv1beta1.Chart{
+	return v1beta2.Chart{
 		Urn:             fmt.Sprintf("%s.%d", dashboardUID, panel.ID),
 		Name:            panel.Title,
 		Type:            panel.Type,

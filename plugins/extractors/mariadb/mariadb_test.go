@@ -7,8 +7,11 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
+	"os"
+	"testing"
+
 	_ "github.com/go-sql-driver/mysql"
-	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/plugins/extractors/mariadb"
 	"github.com/odpf/meteor/test/mocks"
@@ -16,9 +19,6 @@ import (
 	"github.com/ory/dockertest/v3"
 	"github.com/ory/dockertest/v3/docker"
 	"github.com/stretchr/testify/assert"
-	"log"
-	"os"
-	"testing"
 )
 
 const (
@@ -106,8 +106,8 @@ func TestExtract(t *testing.T) {
 
 		var urns []string
 		for _, record := range emitter.Get() {
-			table := record.Data().(*assetsv1beta1.Table)
-			urns = append(urns, table.Resource.Urn)
+			table := record.Data()
+			urns = append(urns, table.Urn)
 
 		}
 		assert.Equal(t, []string{"test_db.applicant", "test_db.jobs"}, urns)

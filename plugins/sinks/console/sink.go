@@ -15,28 +15,31 @@ import (
 //go:embed README.md
 var summary string
 
+var info = plugins.Info{
+	Description:  "Log to standard output",
+	SampleConfig: "",
+	Summary:      summary,
+	Tags:         []string{"log", "sink"},
+}
+
 type Sink struct {
+	plugins.BasePlugin
 	logger log.Logger
 }
 
-func New() plugins.Syncer {
-	return new(Sink)
-}
-
-func (s *Sink) Info() plugins.Info {
-	return plugins.Info{
-		Description:  "Log to standard output",
-		SampleConfig: "",
-		Summary:      summary,
-		Tags:         []string{"log", "sink"},
+func New(logger log.Logger) plugins.Syncer {
+	s := &Sink{
+		logger: logger,
 	}
+	s.BasePlugin = plugins.NewBasePlugin(info, nil)
+
+	return s
 }
 
-func (s *Sink) Validate(configMap map[string]interface{}) (err error) {
-	return nil
-}
-
-func (s *Sink) Init(ctx context.Context, config map[string]interface{}) (err error) {
+func (s *Sink) Init(ctx context.Context, config plugins.Config) (err error) {
+	if err = s.BasePlugin.Init(ctx, config); err != nil {
+		return err
+	}
 	return
 }
 

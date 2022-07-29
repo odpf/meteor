@@ -12,7 +12,6 @@ import (
 	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
-	"github.com/odpf/meteor/utils"
 	"github.com/odpf/salt/log"
 	"golang.org/x/oauth2"
 )
@@ -30,33 +29,35 @@ var sampleConfig = `
 org: odpf
 token: github_token`
 
+var info = plugins.Info{
+	Description:  "User list from Github organisation.",
+	SampleConfig: sampleConfig,
+	Summary:      summary,
+	Tags:         []string{"platform", "extractor"},
+}
+
 // Extractor manages the extraction of data from the extractor
 type Extractor struct {
+	plugins.BaseExtractor
 	logger log.Logger
 	config Config
 	client *github.Client
 }
 
-// Info returns the brief information about the extractor
-func (e *Extractor) Info() plugins.Info {
-	return plugins.Info{
-		Description:  "User list from Github organisation.",
-		SampleConfig: sampleConfig,
-		Summary:      summary,
-		Tags:         []string{"platform", "extractor"},
+// New returns a pointer to an initialized Extractor Object
+func New(logger log.Logger) *Extractor {
+	e := &Extractor{
+		logger: logger,
 	}
-}
+	e.BaseExtractor = plugins.NewBaseExtractor(info, &e.config)
 
-// Validate validates the configuration of the extractor
-func (e *Extractor) Validate(configMap map[string]interface{}) (err error) {
-	return utils.BuildConfig(configMap, &Config{})
+	return e
 }
 
 // Init initializes the extractor
-func (e *Extractor) Init(ctx context.Context, configMap map[string]interface{}) (err error) {
-	err = utils.BuildConfig(configMap, &e.config)
-	if err != nil {
-		return plugins.InvalidConfigError{}
+func (e *Extractor) Init(ctx context.Context, config plugins.Config) (err error) {
+	if err = e.BaseExtractor.Init(ctx, config); err != nil {
+		return err
 	}
 
 	ts := oauth2.StaticTokenSource(
@@ -84,8 +85,11 @@ func (e *Extractor) Extract(ctx context.Context, emit plugins.Emit) (err error) 
 		}
 		emit(models.NewRecord(&assetsv1beta1.User{
 			Resource: &commonv1beta1.Resource{
-				Urn:  usr.GetURL(),
-				Type: "user",
+				Urn:     models.NewURN("github", e.UrnScope, "user", usr.GetNodeID()),
+				Service: "github",
+				Name:    usr.GetEmail(),
+				Type:    "user",
+				Url:     usr.GetURL(),
 			},
 			Email:    usr.GetEmail(),
 			Username: usr.GetLogin(),
@@ -100,9 +104,7 @@ func (e *Extractor) Extract(ctx context.Context, emit plugins.Emit) (err error) 
 // init registers the extractor to catalog
 func init() {
 	if err := registry.Extractors.Register("github", func() plugins.Extractor {
-		return &Extractor{
-			logger: plugins.GetLog(),
-		}
+		return New(plugins.GetLog())
 	}); err != nil {
 		panic(err)
 	}

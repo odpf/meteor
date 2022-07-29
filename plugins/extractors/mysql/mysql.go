@@ -18,7 +18,6 @@ import (
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/plugins/sqlutil"
 	"github.com/odpf/meteor/registry"
-	"github.com/odpf/meteor/utils"
 	"github.com/odpf/salt/log"
 )
 
@@ -35,15 +34,21 @@ var defaultDBList = []string{
 // Config holds the connection URL for the extractor
 type Config struct {
 	ConnectionURL string `mapstructure:"connection_url" validate:"required"`
-	Identifier    string `mapstructure:"identifier" validate:"required"`
 }
 
 var sampleConfig = `
-connection_url: "admin:pass123@tcp(localhost:3306)/"
-identifier: "my-mysql"`
+connection_url: "admin:pass123@tcp(localhost:3306)/"`
+
+var info = plugins.Info{
+	Description:  "Table metadata from MySQL server.",
+	SampleConfig: sampleConfig,
+	Summary:      summary,
+	Tags:         []string{"oss", "extractor"},
+}
 
 // Extractor manages the extraction of data from MySQL
 type Extractor struct {
+	plugins.BaseExtractor
 	excludedDbs map[string]bool
 	logger      log.Logger
 	config      Config
@@ -53,30 +58,18 @@ type Extractor struct {
 
 // New returns a pointer to an initialized Extractor Object
 func New(logger log.Logger) *Extractor {
-	return &Extractor{
+	e := &Extractor{
 		logger: logger,
 	}
-}
+	e.BaseExtractor = plugins.NewBaseExtractor(info, &e.config)
 
-// Info returns the brief information about the extractor
-func (e *Extractor) Info() plugins.Info {
-	return plugins.Info{
-		Description:  "Table metadata from MySQL server.",
-		SampleConfig: sampleConfig,
-		Summary:      summary,
-		Tags:         []string{"oss", "extractor"},
-	}
-}
-
-// Validate validates the configuration of the extractor
-func (e *Extractor) Validate(configMap map[string]interface{}) (err error) {
-	return utils.BuildConfig(configMap, &Config{})
+	return e
 }
 
 // Init initializes the extractor
-func (e *Extractor) Init(ctx context.Context, configMap map[string]interface{}) (err error) {
-	if err = utils.BuildConfig(configMap, &e.config); err != nil {
-		return plugins.InvalidConfigError{}
+func (e *Extractor) Init(ctx context.Context, config plugins.Config) (err error) {
+	if err = e.BaseExtractor.Init(ctx, config); err != nil {
+		return err
 	}
 
 	// build excluded database list
@@ -146,9 +139,10 @@ func (e *Extractor) processTable(database string, tableName string) (err error) 
 	// push table to channel
 	e.emit(models.NewRecord(&assetsv1beta1.Table{
 		Resource: &commonv1beta1.Resource{
-			Urn:  models.TableURN("mysql", e.config.Identifier, database, tableName),
-			Name: tableName,
-			Type: "table",
+			Urn:     models.NewURN("mysql", e.UrnScope, "table", fmt.Sprintf("%s.%s", database, tableName)),
+			Name:    tableName,
+			Service: "mysql",
+			Type:    "table",
 		},
 		Schema: &facetsv1beta1.Columns{
 			Columns: columns,

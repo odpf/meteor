@@ -15,6 +15,7 @@ import (
 	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/plugins/extractors/bigquery/auditlog"
+	"github.com/odpf/meteor/plugins/extractors/bigquery/util"
 	"github.com/odpf/meteor/registry"
 	"github.com/odpf/meteor/utils"
 	"github.com/odpf/salt/log"
@@ -59,8 +60,16 @@ service_account_json: |-
 collect_table_usage: false
 usage_period_in_day: 7`
 
+var info = plugins.Info{
+	Description:  "Big Query table metadata and metrics",
+	SampleConfig: sampleConfig,
+	Tags:         []string{"gcp", "table", "extractor"},
+	Summary:      summary,
+}
+
 // Extractor manages the communication with the bigquery service
 type Extractor struct {
+	plugins.BaseExtractor
 	logger    log.Logger
 	client    *bigquery.Client
 	config    Config
@@ -69,32 +78,20 @@ type Extractor struct {
 
 func New(logger log.Logger) *Extractor {
 	galc := auditlog.New(logger)
-	return &Extractor{
+
+	e := &Extractor{
 		logger:    logger,
 		galClient: galc,
 	}
-}
+	e.BaseExtractor = plugins.NewBaseExtractor(info, &e.config)
 
-// Info returns the detailed information about the extractor
-func (e *Extractor) Info() plugins.Info {
-	return plugins.Info{
-		Description:  "Big Query table metadata and metrics",
-		SampleConfig: sampleConfig,
-		Summary:      summary,
-		Tags:         []string{"gcp", "table", "extractor"},
-	}
-}
-
-// Validate validates the configuration of the extractor
-func (e *Extractor) Validate(configMap map[string]interface{}) (err error) {
-	return utils.BuildConfig(configMap, &Config{})
+	return e
 }
 
 // Init initializes the extractor
-func (e *Extractor) Init(ctx context.Context, configMap map[string]interface{}) (err error) {
-	err = utils.BuildConfig(configMap, &e.config)
-	if err != nil {
-		return plugins.InvalidConfigError{}
+func (e *Extractor) Init(ctx context.Context, config plugins.Config) (err error) {
+	if err = e.BaseExtractor.Init(ctx, config); err != nil {
+		return err
 	}
 
 	e.client, err = e.createClient(ctx)
@@ -185,7 +182,7 @@ func (e *Extractor) buildTable(ctx context.Context, t *bigquery.Table, md *bigqu
 	}
 
 	tableFQN := t.FullyQualifiedName()
-	tableURN := models.TableURN("bigquery", t.ProjectID, t.DatasetID, t.TableID)
+	tableURN := util.TableURN(t.ProjectID, t.DatasetID, t.TableID)
 
 	tableProfile := e.buildTableProfile(tableURN, tableStats)
 

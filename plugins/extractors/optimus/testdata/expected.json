@@ -1,6 +1,6 @@
 [{
         "resource": {
-            "urn": "optimus::optimus:80/project-A.namespace-A.job-A",
+            "urn": "urn:optimus:test-optimus:job:project-A.namespace-A.job-A",
             "type": "job",
             "name": "job-A",
             "service": "optimus",
@@ -37,12 +37,12 @@
         },
         "lineage": {
             "upstreams": [{
-                "urn": "bigquery::src-project/src-dataset/src-table",
+                "urn": "urn:bigquery:src-project:table:src-project:src-dataset.src-table",
                 "type": "table",
                 "service": "bigquery"
             }],
             "downstreams": [{
-                "urn": "bigquery::dst-project/dst-dataset/dst-table",
+                "urn": "urn:bigquery:dst-project:table:dst-project:dst-dataset.dst-table",
                 "type": "table",
                 "service": "bigquery"
             }]
@@ -50,7 +50,7 @@
     },
     {
         "resource": {
-            "urn": "optimus::optimus:80/project-A.namespace-A.job-B",
+            "urn": "urn:optimus:test-optimus:job:project-A.namespace-A.job-B",
             "name": "job-B",
             "service": "optimus",
             "type": "job",
@@ -87,18 +87,18 @@
         },
         "lineage": {
             "upstreams": [{
-                    "urn": "bigquery::src-b1-project/src-b1-dataset/src-b1-table",
+                    "urn": "urn:bigquery:src-b1-project:table:src-b1-project:src-b1-dataset.src-b1-table",
                     "type": "table",
                     "service": "bigquery"
                 },
                 {
-                    "urn": "bigquery::src-b2-project/src-b2-dataset/src-b2-table",
+                    "urn": "urn:bigquery:src-b2-project:table:src-b2-project:src-b2-dataset.src-b2-table",
                     "type": "table",
                     "service": "bigquery"
                 }
             ],
             "downstreams": [{
-                "urn": "bigquery::dst-b-project/dst-b-dataset/dst-b-table",
+                "urn": "urn:bigquery:dst-b-project:table:dst-b-project:dst-b-dataset.dst-b-table",
                 "type": "table",
                 "service": "bigquery"
             }]

@@ -24,8 +24,11 @@ func TestInit(t *testing.T) {
 		config := map[string]interface{}{}
 		err := csv.New(utils.Logger).Init(
 			context.TODO(),
-			config)
-		assert.Equal(t, plugins.InvalidConfigError{}, err)
+			plugins.Config{
+				URNScope:  "test-csv",
+				RawConfig: config,
+			})
+		assert.ErrorAs(t, err, &plugins.InvalidConfigError{})
 	})
 }
 
@@ -33,8 +36,11 @@ func TestExtract(t *testing.T) {
 	t.Run("should extract data if path is a file", func(t *testing.T) {
 		ctx := context.TODO()
 		extr := csv.New(utils.Logger)
-		err := extr.Init(ctx, map[string]interface{}{
-			"path": "./testdata/test.csv",
+		err := extr.Init(ctx, plugins.Config{
+			URNScope: "test-csv",
+			RawConfig: map[string]interface{}{
+				"path": "./testdata/test.csv",
+			},
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -47,7 +53,7 @@ func TestExtract(t *testing.T) {
 		expected := []models.Record{
 			models.NewRecord(&assetsv1beta1.Table{
 				Resource: &commonv1beta1.Resource{
-					Urn:     "test.csv",
+					Urn:     "urn:csv:test-csv:file:test.csv",
 					Name:    "test.csv",
 					Service: "csv",
 					Type:    "table",
@@ -68,8 +74,11 @@ func TestExtract(t *testing.T) {
 	t.Run("should extract data from all files if path is a dir", func(t *testing.T) {
 		ctx := context.TODO()
 		extr := csv.New(utils.Logger)
-		err := extr.Init(ctx, map[string]interface{}{
-			"path": "./testdata",
+		err := extr.Init(ctx, plugins.Config{
+			URNScope: "test-csv",
+			RawConfig: map[string]interface{}{
+				"path": "./testdata",
+			},
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -82,7 +91,7 @@ func TestExtract(t *testing.T) {
 		expected := []models.Record{
 			models.NewRecord(&assetsv1beta1.Table{
 				Resource: &commonv1beta1.Resource{
-					Urn:     "test-2.csv",
+					Urn:     "urn:csv:test-csv:file:test-2.csv",
 					Name:    "test-2.csv",
 					Service: "csv",
 					Type:    "table",
@@ -97,7 +106,7 @@ func TestExtract(t *testing.T) {
 			}),
 			models.NewRecord(&assetsv1beta1.Table{
 				Resource: &commonv1beta1.Resource{
-					Urn:     "test.csv",
+					Urn:     "urn:csv:test-csv:file:test.csv",
 					Name:    "test.csv",
 					Service: "csv",
 					Type:    "table",

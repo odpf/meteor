@@ -32,6 +32,7 @@ const (
 	port     = 9042
 	host     = "127.0.0.1"
 	keyspace = "cassandra_meteor_test"
+	urnScope = "test-cassandra"
 )
 
 var session *gocql.Session
@@ -105,12 +106,15 @@ func TestEmptyHosts(t *testing.T) {
 // TestInit tests the configs
 func TestInit(t *testing.T) {
 	t.Run("should return error for invalid configs", func(t *testing.T) {
-		err := cassandra.New(utils.Logger).Init(context.TODO(), map[string]interface{}{
-			"password": pass,
-			"host":     host,
+		err := cassandra.New(utils.Logger).Init(context.TODO(), plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"password": pass,
+				"host":     host,
+			},
 		})
 
-		assert.Equal(t, plugins.InvalidConfigError{}, err)
+		assert.ErrorAs(t, err, &plugins.InvalidConfigError{})
 	})
 }
 
@@ -120,11 +124,14 @@ func TestExtract(t *testing.T) {
 		ctx := context.TODO()
 		extr := cassandra.New(utils.Logger)
 
-		err := extr.Init(ctx, map[string]interface{}{
-			"user_id":  user,
-			"password": pass,
-			"host":     host,
-			"port":     port,
+		err := extr.Init(ctx, plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"user_id":  user,
+				"password": pass,
+				"host":     host,
+				"port":     port,
+			},
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -185,9 +192,10 @@ func getExpected() []models.Record {
 	return []models.Record{
 		models.NewRecord(&assetsv1beta1.Table{
 			Resource: &commonv1beta1.Resource{
-				Urn:  keyspace + ".applicant",
-				Name: "applicant",
-				Type: "table",
+				Urn:     "urn:cassandra:test-cassandra:table:" + keyspace + ".applicant",
+				Name:    "applicant",
+				Service: "cassandra",
+				Type:    "table",
 			},
 			Schema: &facetsv1beta1.Columns{
 				Columns: []*facetsv1beta1.Column{
@@ -208,9 +216,10 @@ func getExpected() []models.Record {
 		}),
 		models.NewRecord(&assetsv1beta1.Table{
 			Resource: &commonv1beta1.Resource{
-				Urn:  keyspace + ".jobs",
-				Name: "jobs",
-				Type: "table",
+				Urn:     "urn:cassandra:test-cassandra:table:" + keyspace + ".jobs",
+				Name:    "jobs",
+				Service: "cassandra",
+				Type:    "table",
 			},
 			Schema: &facetsv1beta1.Columns{
 				Columns: []*facetsv1beta1.Column{

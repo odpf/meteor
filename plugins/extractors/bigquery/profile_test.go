@@ -7,13 +7,13 @@ import (
 	"testing"
 
 	"github.com/alecthomas/assert"
-	"github.com/odpf/meteor/models"
 	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
 	"github.com/odpf/meteor/plugins/extractors/bigquery/auditlog"
+	"github.com/odpf/meteor/plugins/extractors/bigquery/util"
 )
 
 func TestBuildTableProfile(t *testing.T) {
-	tableURN := models.TableURN("bigquery", "project1", "dataset1", "table1")
+	tableURN := util.TableURN("project1", "dataset1", "table1")
 	t.Run("table profile usage related fields are empty if usage collection is disabled", func(t *testing.T) {
 
 		var tableStats *auditlog.TableStats
@@ -45,19 +45,19 @@ func TestBuildTableProfile(t *testing.T) {
 	t.Run("table profile usage related fields are populated if table stats is not nil and usage collection is enabled", func(t *testing.T) {
 		tableStats := &auditlog.TableStats{
 			TableUsage: map[string]int64{
-				models.TableURN("bigquery", "project1", "dataset1", "table1"): 5,
-				models.TableURN("bigquery", "project2", "dataset1", "table1"): 3,
-				models.TableURN("bigquery", "project3", "dataset1", "table1"): 1,
+				util.TableURN("project1", "dataset1", "table1"): 5,
+				util.TableURN("project2", "dataset1", "table1"): 3,
+				util.TableURN("project3", "dataset1", "table1"): 1,
 			},
 			JoinDetail: map[string]map[string]auditlog.JoinDetail{
-				models.TableURN("bigquery", "project1", "dataset1", "table1"): {
-					models.TableURN("bigquery", "project2", "dataset1", "table1"): auditlog.JoinDetail{
+				util.TableURN("project1", "dataset1", "table1"): {
+					util.TableURN("project2", "dataset1", "table1"): auditlog.JoinDetail{
 						Usage: 1,
 					},
-					models.TableURN("bigquery", "project3", "dataset1", "table1"): auditlog.JoinDetail{
+					util.TableURN("project3", "dataset1", "table1"): auditlog.JoinDetail{
 						Usage: 3,
 					},
-					models.TableURN("bigquery", "project4", "dataset1", "table1"): auditlog.JoinDetail{
+					util.TableURN("project4", "dataset1", "table1"): auditlog.JoinDetail{
 						Usage: 1,
 					},
 				},
@@ -74,15 +74,15 @@ func TestBuildTableProfile(t *testing.T) {
 
 		assert.EqualValues(t, 5, tp.UsageCount)
 		assert.Contains(t, tp.Joins, &assetsv1beta1.Join{
-			Urn:   models.TableURN("bigquery", "project2", "dataset1", "table1"),
+			Urn:   util.TableURN("project2", "dataset1", "table1"),
 			Count: 1,
 		})
 		assert.Contains(t, tp.Joins, &assetsv1beta1.Join{
-			Urn:   models.TableURN("bigquery", "project3", "dataset1", "table1"),
+			Urn:   util.TableURN("project3", "dataset1", "table1"),
 			Count: 3,
 		})
 		assert.Contains(t, tp.Joins, &assetsv1beta1.Join{
-			Urn:   models.TableURN("bigquery", "project4", "dataset1", "table1"),
+			Urn:   util.TableURN("project4", "dataset1", "table1"),
 			Count: 1,
 		})
 	})

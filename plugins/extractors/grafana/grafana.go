@@ -13,7 +13,6 @@ import (
 	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
-	"github.com/odpf/meteor/utils"
 	"github.com/odpf/salt/log"
 )
 
@@ -30,8 +29,16 @@ var sampleConfig = `
 base_url: grafana_server
 api_key: your_api_key`
 
+var info = plugins.Info{
+	Description:  "Dashboard list from Grafana server.",
+	SampleConfig: sampleConfig,
+	Summary:      summary,
+	Tags:         []string{"oss", "extractor"},
+}
+
 // Extractor manages the communication with the Grafana Server
 type Extractor struct {
+	plugins.BaseExtractor
 	client *Client
 	config Config
 	logger log.Logger
@@ -39,32 +46,18 @@ type Extractor struct {
 
 // New returns a pointer to an initialized Extractor Object
 func New(logger log.Logger) *Extractor {
-	return &Extractor{
+	e := &Extractor{
 		logger: logger,
 	}
-}
+	e.BaseExtractor = plugins.NewBaseExtractor(info, &e.config)
 
-// Info returns the brief information about the extractor
-func (e *Extractor) Info() plugins.Info {
-	return plugins.Info{
-		Description:  "Dashboard list from Grafana server.",
-		SampleConfig: sampleConfig,
-		Summary:      summary,
-		Tags:         []string{"oss", "extractor"},
-	}
-}
-
-// Validate validates the configuration of the extractor
-func (e *Extractor) Validate(configMap map[string]interface{}) (err error) {
-	return utils.BuildConfig(configMap, &Config{})
+	return e
 }
 
 // Init initializes the extractor
-func (e *Extractor) Init(ctx context.Context, configMap map[string]interface{}) (err error) {
-	// build config
-	err = utils.BuildConfig(configMap, &e.config)
-	if err != nil {
-		return plugins.InvalidConfigError{}
+func (e *Extractor) Init(ctx context.Context, config plugins.Config) (err error) {
+	if err = e.BaseExtractor.Init(ctx, config); err != nil {
+		return err
 	}
 
 	// build client
@@ -102,7 +95,7 @@ func (e *Extractor) grafanaDashboardToMeteorDashboard(dashboard DashboardDetail)
 	}
 	return &assetsv1beta1.Dashboard{
 		Resource: &commonv1beta1.Resource{
-			Urn:         fmt.Sprintf("grafana.%s", dashboard.Dashboard.UID),
+			Urn:         models.NewURN("grafana", e.UrnScope, "dashboard", dashboard.Dashboard.UID),
 			Name:        dashboard.Meta.Slug,
 			Type:        "dashboard",
 			Service:     "grafana",
@@ -120,7 +113,7 @@ func (e *Extractor) grafanaPanelToMeteorChart(panel Panel, dashboardUID string, 
 		rawQuery = panel.Targets[0].RawSQL
 	}
 	return assetsv1beta1.Chart{
-		Urn:             fmt.Sprintf("%s.%d", dashboardUID, panel.ID),
+		Urn:             models.NewURN("grafana", e.UrnScope, "panel", fmt.Sprintf("%s.%d", dashboardUID, panel.ID)),
 		Name:            panel.Title,
 		Type:            panel.Type,
 		Source:          "grafana",

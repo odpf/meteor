@@ -10,7 +10,6 @@ import (
 	"github.com/odpf/meteor/models"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
-	"github.com/odpf/meteor/utils"
 	"github.com/odpf/salt/log"
 	ndjson "github.com/scizorman/go-ndjson"
 	"gopkg.in/yaml.v3"
@@ -25,38 +24,36 @@ type Config struct {
 	Format    string `mapstructure:"format" validate:"required"`
 }
 
-var sampleConfig = `
-path: ./output-filename.txt
-format: ndjson
-`
+var info = plugins.Info{
+	Description: "save output to a file",
+	Summary:     summary,
+	Tags:        []string{"file", "json", "yaml", "sink"},
+	SampleConfig: `
+	path: ./output-filename.txt
+	format: ndjson
+	`,
+}
 
 type Sink struct {
+	plugins.BasePlugin
 	logger log.Logger
 	config Config
 	format string
 	File   *os.File
 }
 
-func New() plugins.Syncer {
-	return new(Sink)
-}
-
-func (s *Sink) Info() plugins.Info {
-	return plugins.Info{
-		Description:  "save output to a file",
-		SampleConfig: sampleConfig,
-		Summary:      summary,
-		Tags:         []string{"file", "json", "yaml", "sink"},
+func New(logger log.Logger) plugins.Syncer {
+	s := &Sink{
+		logger: logger,
 	}
+	s.BasePlugin = plugins.NewBasePlugin(info, &s.config)
+
+	return s
 }
 
-func (s *Sink) Validate(configMap map[string]interface{}) (err error) {
-	return utils.BuildConfig(configMap, &Config{})
-}
-
-func (s *Sink) Init(ctx context.Context, config map[string]interface{}) (err error) {
-	if err := utils.BuildConfig(config, &s.config); err != nil {
-		return plugins.InvalidConfigError{Type: "sink", PluginName: "file"}
+func (s *Sink) Init(ctx context.Context, config plugins.Config) (err error) {
+	if err = s.BasePlugin.Init(ctx, config); err != nil {
+		return err
 	}
 
 	if err := s.validateFilePath(s.config.Path); err != nil {
@@ -130,16 +127,14 @@ func (s *Sink) validateFilePath(path string) error {
 	filename := dirs[len(dirs)-1]
 	format := strings.Split(filename, ".")
 	if len(format) != 2 {
-		return fmt.Errorf("invalid filename")
+		return fmt.Errorf("invalid filename for \"%s\"", path)
 	}
 	return nil
 }
 
 func init() {
 	if err := registry.Sinks.Register("file", func() plugins.Syncer {
-		return &Sink{
-			logger: plugins.GetLog(),
-		}
+		return New(plugins.GetLog())
 	}); err != nil {
 		panic(err)
 	}

@@ -3,6 +3,8 @@ package redshift
 import (
 	"context"
 	_ "embed" // used to print the embedded assets
+	"fmt"
+
 	"github.com/aws/aws-sdk-go/aws"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/redshiftdataapiservice"
@@ -13,7 +15,6 @@ import (
 	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
-	"github.com/odpf/meteor/utils"
 	"github.com/odpf/salt/log"
 )
 
@@ -37,6 +38,13 @@ aws_region: us-east-1
 exclude: secondaryDB
 `
 
+var info = plugins.Info{
+	Description:  "Table metadata from Redshift server.",
+	SampleConfig: sampleConfig,
+	Summary:      summary,
+	Tags:         []string{"oss", "extractor"},
+}
+
 // Option provides extension abstraction to Extractor constructor
 type Option func(*Extractor)
 
@@ -50,6 +58,7 @@ func WithClient(redshiftClient redshiftdataapiserviceiface.RedshiftDataAPIServic
 // Extractor manages the extraction of data
 // from the redshift server
 type Extractor struct {
+	plugins.BaseExtractor
 	config Config
 	logger log.Logger
 	client redshiftdataapiserviceiface.RedshiftDataAPIServiceAPI
@@ -60,6 +69,7 @@ func New(logger log.Logger, opts ...Option) *Extractor {
 	e := &Extractor{
 		logger: logger,
 	}
+	e.BaseExtractor = plugins.NewBaseExtractor(info, &e.config)
 	for _, opt := range opts {
 		opt(e)
 	}
@@ -67,26 +77,10 @@ func New(logger log.Logger, opts ...Option) *Extractor {
 	return e
 }
 
-// Info returns the brief information about the extractor
-func (e *Extractor) Info() plugins.Info {
-	return plugins.Info{
-		Description:  "Table metadata from Redshift server.",
-		SampleConfig: sampleConfig,
-		Summary:      summary,
-		Tags:         []string{"oss", "extractor"},
-	}
-}
-
-// Validate validates the configuration of the extractor
-func (e *Extractor) Validate(configMap map[string]interface{}) (err error) {
-	return utils.BuildConfig(configMap, &Config{})
-}
-
 // Init initializes the extractor
-func (e *Extractor) Init(_ context.Context, config map[string]interface{}) (err error) {
-	// Build and validate config received from recipe
-	if err = utils.BuildConfig(config, &e.config); err != nil {
-		return plugins.InvalidConfigError{}
+func (e *Extractor) Init(ctx context.Context, config plugins.Config) (err error) {
+	if err = e.BaseExtractor.Init(ctx, config); err != nil {
+		return err
 	}
 
 	if e.client != nil {
@@ -187,7 +181,7 @@ func (e *Extractor) getTableMetadata(dbName string, tableName string) (result *a
 
 	result = &assetsv1beta1.Table{
 		Resource: &commonv1beta1.Resource{
-			Urn:     models.TableURN("redshift", e.config.AWSRegion, dbName, tableName),
+			Urn:     models.NewURN("redshift", e.config.ClusterID, "table", fmt.Sprintf("%s.%s.%s", e.config.ClusterID, dbName, tableName)),
 			Name:    tableName,
 			Type:    "table",
 			Service: "redshift",

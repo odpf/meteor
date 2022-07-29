@@ -1,6 +1,13 @@
 package plugins
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
+
+var (
+	ErrEmptyURNScope = errors.New("urn scope is required to generate unique urn")
+)
 
 // ConfigError contains fields to check error
 type ConfigError struct {

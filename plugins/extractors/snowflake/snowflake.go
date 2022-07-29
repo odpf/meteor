@@ -10,7 +10,6 @@ import (
 	"github.com/odpf/meteor/models"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
-	"github.com/odpf/meteor/utils"
 	"github.com/odpf/salt/log"
 	"github.com/snowflakedb/gosnowflake"
 	_ "github.com/snowflakedb/gosnowflake" // used to register the snowflake driver
@@ -29,9 +28,16 @@ type Config struct {
 }
 
 var sampleConfig = `connection_url: "user:password@my_organization-my_account/mydb"`
+var info = plugins.Info{
+	Description:  "Table metadata from Snowflake server.",
+	SampleConfig: sampleConfig,
+	Summary:      summary,
+	Tags:         []string{"oss", "extractor"},
+}
 
 // Extractor manages the extraction of data from snowflake
 type Extractor struct {
+	plugins.BaseExtractor
 	logger        log.Logger
 	config        Config
 	httpTransport http.RoundTripper
@@ -54,6 +60,7 @@ func New(logger log.Logger, opts ...Option) *Extractor {
 	e := &Extractor{
 		logger: logger,
 	}
+	e.BaseExtractor = plugins.NewBaseExtractor(info, &e.config)
 
 	for _, opt := range opts {
 		opt(e)
@@ -62,26 +69,10 @@ func New(logger log.Logger, opts ...Option) *Extractor {
 	return e
 }
 
-// Info returns the brief information about the extractor
-func (e *Extractor) Info() plugins.Info {
-	return plugins.Info{
-		Description:  "Table metadata from Snowflake server.",
-		SampleConfig: sampleConfig,
-		Summary:      summary,
-		Tags:         []string{"oss", "extractor"},
-	}
-}
-
-// Validate validates the configuration of the extractor
-func (e *Extractor) Validate(configMap map[string]interface{}) (err error) {
-	return utils.BuildConfig(configMap, &Config{})
-}
-
 // Init initializes the extractor
-func (e *Extractor) Init(_ context.Context, configMap map[string]interface{}) (err error) {
-	// Build and validate config received from recipe
-	if err = utils.BuildConfig(configMap, &e.config); err != nil {
-		return plugins.InvalidConfigError{}
+func (e *Extractor) Init(ctx context.Context, config plugins.Config) (err error) {
+	if err = e.BaseExtractor.Init(ctx, config); err != nil {
+		return err
 	}
 
 	if e.httpTransport == nil {
@@ -170,9 +161,9 @@ func (e *Extractor) processTable(database string, tableName string) (err error) 
 	// push table to channel
 	e.emit(models.NewRecord(&assetsv1beta1.Table{
 		Resource: &commonv1beta1.Resource{
-			Urn:     fmt.Sprintf("%s.%s", database, tableName),
+			Urn:     models.NewURN("snowflake", e.UrnScope, "table", fmt.Sprintf("%s.%s", database, tableName)),
 			Name:    tableName,
-			Service: "Snowflake",
+			Service: "snowflake",
 			Type:    "table",
 		},
 		Schema: &facetsv1beta1.Columns{

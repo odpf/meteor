@@ -1,3 +1,6 @@
+//go:build plugins
+// +build plugins
+
 package http_test
 
 import (
@@ -7,7 +10,6 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/alecthomas/assert"
 	"github.com/dnaeon/go-vcr/v2/recorder"
 	"github.com/odpf/meteor/models"
 	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
@@ -17,6 +19,7 @@ import (
 	h "github.com/odpf/meteor/plugins/sinks/http"
 	testutils "github.com/odpf/meteor/test/utils"
 	"github.com/pkg/errors"
+	"github.com/stretchr/testify/assert"
 )
 
 //go:embed README.md
@@ -35,8 +38,8 @@ func TestSink(t *testing.T) {
 				"Accept":       "application/json",
 			},
 		}
-		err := httpSink.Init(context.TODO(), config)
-		assert.Equal(t, err, plugins.InvalidConfigError{Type: plugins.PluginTypeSink, PluginName: "http"})
+		err := httpSink.Init(context.TODO(), plugins.Config{RawConfig: config})
+		assert.ErrorAs(t, err, &plugins.InvalidConfigError{})
 	})
 
 	t.Run("should return no error for valid config, without optional values", func(t *testing.T) {
@@ -45,7 +48,7 @@ func TestSink(t *testing.T) {
 			"url":    "http://sitename.com",
 			"method": "POST",
 		}
-		err := httpSink.Init(context.TODO(), config)
+		err := httpSink.Init(context.TODO(), plugins.Config{RawConfig: config})
 		assert.NoError(t, err)
 	})
 
@@ -70,7 +73,7 @@ func TestSink(t *testing.T) {
 				"Accept":       "application/json",
 			},
 		}
-		err = httpSink.Init(context.TODO(), config)
+		err = httpSink.Init(context.TODO(), plugins.Config{RawConfig: config})
 		assert.NoError(t, err)
 		defer httpSink.Close()
 		err = httpSink.Sink(context.TODO(), getExpectedVal())
@@ -78,7 +81,7 @@ func TestSink(t *testing.T) {
 
 		// change value of url in config
 		config["url"] = "https://random-incorrect-url.odpf.com"
-		err = httpSink.Init(context.TODO(), config)
+		err = httpSink.Init(context.TODO(), plugins.Config{RawConfig: config})
 		assert.NoError(t, err)
 		err = httpSink.Sink(context.TODO(), getExpectedVal())
 		assert.Error(t, err)
@@ -86,7 +89,7 @@ func TestSink(t *testing.T) {
 		// change value of method in config
 		config["method"] = "RANDOM"
 		config["url"] = "http://127.0.0.1:54927"
-		err = httpSink.Init(context.TODO(), config)
+		err = httpSink.Init(context.TODO(), plugins.Config{RawConfig: config})
 		assert.NoError(t, err)
 		err = httpSink.Sink(context.TODO(), getExpectedVal())
 		assert.Error(t, err)
@@ -116,7 +119,7 @@ func TestSink(t *testing.T) {
 						"Accept":       "application/json",
 					},
 				}
-				err = httpSink.Init(context.TODO(), config)
+				err = httpSink.Init(context.TODO(), plugins.Config{RawConfig: config})
 				assert.NoError(t, err)
 				defer httpSink.Close()
 				err = httpSink.Sink(context.TODO(), getExpectedVal())
@@ -147,7 +150,7 @@ func TestSink(t *testing.T) {
 				"Accept":       "application/json",
 			},
 		}
-		err = httpSink.Init(context.TODO(), config)
+		err = httpSink.Init(context.TODO(), plugins.Config{RawConfig: config})
 		assert.NoError(t, err)
 		defer httpSink.Close()
 		err = httpSink.Sink(context.TODO(), getExpectedVal())

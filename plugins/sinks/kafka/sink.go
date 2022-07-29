@@ -12,7 +12,7 @@ import (
 	"github.com/odpf/meteor/models"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
-	"github.com/odpf/meteor/utils"
+	"github.com/odpf/salt/log"
 	"github.com/pkg/errors"
 	kafka "github.com/segmentio/kafka-go"
 	"google.golang.org/protobuf/proto"
@@ -27,42 +27,41 @@ type Config struct {
 	KeyPath string `mapstructure:"key_path"`
 }
 
-var sampleConfig = `
- # Kafka broker addresses
- brokers: "localhost:9092"
- # The Kafka topic to write to
- topic: sample-topic-name
- # The path to the key field in the payload
- key_path: xxx`
+var info = plugins.Info{
+	Description: "Sink metadata to Apache Kafka topic",
+	Summary:     summary,
+	Tags:        []string{"kafka", "topic", "sink"},
+	SampleConfig: `
+	# Kafka broker addresses
+	brokers: "localhost:9092"
+	# The Kafka topic to write to
+	topic: sample-topic-name
+	# The path to the key field in the payload
+	key_path: xxx`,
+}
 
 type ProtoReflector interface {
 	ProtoReflect() protoreflect.Message
 }
 
 type Sink struct {
+	plugins.BasePlugin
 	writer *kafka.Writer
 	config Config
+	logger log.Logger
 }
 
-func New() plugins.Syncer {
-	return new(Sink)
-}
-
-func (s *Sink) Info() plugins.Info {
-	return plugins.Info{
-		Description:  "Sink metadata to Apache Kafka topic",
-		Summary:      summary,
-		SampleConfig: sampleConfig,
-		Tags:         []string{"kafka", "topic", "sink"},
+func New(logger log.Logger) plugins.Syncer {
+	s := &Sink{
+		logger: logger,
 	}
+	s.BasePlugin = plugins.NewBasePlugin(info, &s.config)
+
+	return s
 }
 
-func (s *Sink) Validate(configMap map[string]interface{}) (err error) {
-	return utils.BuildConfig(configMap, &Config{})
-}
-
-func (s *Sink) Init(ctx context.Context, configMap map[string]interface{}) (err error) {
-	if err := utils.BuildConfig(configMap, &s.config); err != nil {
+func (s *Sink) Init(ctx context.Context, config plugins.Config) (err error) {
+	if err = s.BasePlugin.Init(ctx, config); err != nil {
 		return err
 	}
 
@@ -198,7 +197,7 @@ func createWriter(config Config) *kafka.Writer {
 
 func init() {
 	if err := registry.Sinks.Register("kafka", func() plugins.Syncer {
-		return &Sink{}
+		return New(plugins.GetLog())
 	}); err != nil {
 		panic(err)
 	}

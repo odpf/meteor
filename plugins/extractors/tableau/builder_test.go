@@ -32,7 +32,7 @@ func TestBuildLineageResource(t *testing.T) {
 		res, err := e.buildLineageResources(table)
 
 		expectedResource := &commonv1beta1.Resource{
-			Urn:     "bigquery::database_server/access_data/table1",
+			Urn:     "urn:bigquery:database_server:table:database_server:access_data.table1",
 			Type:    "table",
 			Service: table.Database["connectionType"].(string),
 		}
@@ -59,7 +59,7 @@ func TestBuildLineageResource(t *testing.T) {
 		res, err := e.buildLineageResources(table)
 
 		expectedResource := &commonv1beta1.Resource{
-			Urn:     "postgres::localhost:5432/database_server/table1",
+			Urn:     "urn:postgres:localhost:5432:table:database_server.table1",
 			Type:    "table",
 			Service: table.Database["connectionType"].(string),
 		}
@@ -85,7 +85,7 @@ func TestBuildLineageResource(t *testing.T) {
 		res, err := e.buildLineageResources(table)
 
 		expectedResource := &commonv1beta1.Resource{
-			Urn:     "gcs::gcs/database_cloud_file/table_name",
+			Urn:     "urn:gcs:gcs:bucket:database_cloud_file/table_name",
 			Type:    "bucket",
 			Service: table.Database["connectionType"].(string),
 		}
@@ -111,7 +111,7 @@ func TestBuildLineageResource(t *testing.T) {
 		res, err := e.buildLineageResources(table)
 
 		expectedResource := &commonv1beta1.Resource{
-			Urn:     "file::/this/is/file/database_file/table_name",
+			Urn:     "urn:file:/this/is/file:bucket:database_file.table_name",
 			Type:    "bucket",
 			Service: table.Database["connectionType"].(string),
 		}
@@ -137,7 +137,7 @@ func TestBuildLineageResource(t *testing.T) {
 		res, err := e.buildLineageResources(table)
 
 		expectedResource := &commonv1beta1.Resource{
-			Urn:     "web_data_connector::http://link_to_connector/database_wdc/table_name",
+			Urn:     "urn:web_data_connector:http://link_to_connector:table:database_wdc.table_name",
 			Type:    "table",
 			Service: table.Database["connectionType"].(string),
 		}
@@ -197,12 +197,12 @@ func TestBuildLineage(t *testing.T) {
 	expectedLineage := &facetsv1beta1.Lineage{
 		Upstreams: []*commonv1beta1.Resource{
 			{
-				Urn:     "postgres::localhost:5432/database_1/table_name_1",
+				Urn:     "urn:postgres:localhost:5432:table:database_1.table_name_1",
 				Type:    "table",
 				Service: upstreamTables[0].Database["connectionType"].(string),
 			},
 			{
-				Urn:     "gcs::gcs/database_2/table_name_2",
+				Urn:     "urn:gcs:gcs:bucket:database_2/table_name_2",
 				Type:    "bucket",
 				Service: upstreamTables[1].Database["connectionType"].(string),
 			},

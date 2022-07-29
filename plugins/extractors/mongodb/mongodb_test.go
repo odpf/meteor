@@ -27,10 +27,11 @@ import (
 )
 
 const (
-	testDB = "MeteorMongoExtractorTest"
-	user   = "user"
-	pass   = "abcd"
-	port   = "27017"
+	testDB   = "MeteorMongoExtractorTest"
+	user     = "user"
+	pass     = "abcd"
+	port     = "27017"
+	urnScope = "test-mongodb"
 )
 
 var (
@@ -94,11 +95,13 @@ func TestMain(m *testing.M) {
 
 func TestInit(t *testing.T) {
 	t.Run("should return error for invalid", func(t *testing.T) {
-		err := mongodb.New(utils.Logger).Init(context.TODO(), map[string]interface{}{
-			"invalid_config": "invalid_config_value",
-		})
+		err := mongodb.New(utils.Logger).Init(context.TODO(), plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"invalid_config": "invalid_config_value",
+			}})
 
-		assert.Equal(t, plugins.InvalidConfigError{}, err)
+		assert.ErrorAs(t, err, &plugins.InvalidConfigError{})
 	})
 }
 
@@ -107,9 +110,11 @@ func TestExtract(t *testing.T) {
 		ctx := context.TODO()
 		extr := mongodb.New(utils.Logger)
 
-		err := extr.Init(ctx, map[string]interface{}{
-			"connection_url": fmt.Sprintf("mongodb://%s:%s@%s", user, pass, host),
-		})
+		err := extr.Init(ctx, plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"connection_url": fmt.Sprintf("mongodb://%s:%s@%s", user, pass, host),
+			}})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -163,9 +168,10 @@ func getExpected() []models.Record {
 	return []models.Record{
 		models.NewRecord(&assetsv1beta1.Table{
 			Resource: &commonv1beta1.Resource{
-				Urn:  testDB + ".connections",
-				Name: "connections",
-				Type: "table",
+				Urn:     "urn:mongodb:test-mongodb:collection:" + testDB + ".connections",
+				Name:    "connections",
+				Service: "mongodb",
+				Type:    "table",
 			},
 			Profile: &assetsv1beta1.TableProfile{
 				TotalRows: 3,
@@ -173,9 +179,10 @@ func getExpected() []models.Record {
 		}),
 		models.NewRecord(&assetsv1beta1.Table{
 			Resource: &commonv1beta1.Resource{
-				Urn:  testDB + ".posts",
-				Name: "posts",
-				Type: "table",
+				Urn:     "urn:mongodb:test-mongodb:collection:" + testDB + ".posts",
+				Name:    "posts",
+				Service: "mongodb",
+				Type:    "table",
 			},
 			Profile: &assetsv1beta1.TableProfile{
 				TotalRows: 2,
@@ -183,9 +190,10 @@ func getExpected() []models.Record {
 		}),
 		models.NewRecord(&assetsv1beta1.Table{
 			Resource: &commonv1beta1.Resource{
-				Urn:  testDB + ".stats",
-				Name: "stats",
-				Type: "table",
+				Urn:     "urn:mongodb:test-mongodb:collection:" + testDB + ".stats",
+				Name:    "stats",
+				Service: "mongodb",
+				Type:    "table",
 			},
 			Profile: &assetsv1beta1.TableProfile{
 				TotalRows: 1,

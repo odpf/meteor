@@ -14,7 +14,6 @@ import (
 	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
-	"github.com/odpf/meteor/utils"
 	"github.com/odpf/salt/log"
 	"github.com/pkg/errors"
 )
@@ -29,14 +28,19 @@ type Config struct {
 	Format      string `mapstructure:"format" validate:"oneof=json avro" default:"json"`
 }
 
-var sampleConfig = `
-# The hostname of the stencil service
-host: https://stencil.com
-# The namespace ID of the stencil service
-namespace_id: myNamespace
-# The schema format in which data will sink to stencil
-format: avro
-`
+var info = plugins.Info{
+	Description: "Send metadata to stencil http service",
+	Summary:     summary,
+	Tags:        []string{"http", "sink"},
+	SampleConfig: `
+	# The hostname of the stencil service
+	host: https://stencil.com
+	# The namespace ID of the stencil service
+	namespace_id: myNamespace
+	# The schema format in which data will sink to stencil
+	format: avro
+	`,
+}
 
 // httpClient holds the set of methods require for creating request
 type httpClient interface {
@@ -45,6 +49,7 @@ type httpClient interface {
 
 // Sink manages the sinking of data to Stencil
 type Sink struct {
+	plugins.BasePlugin
 	client httpClient
 	config Config
 	logger log.Logger
@@ -52,29 +57,19 @@ type Sink struct {
 
 // New returns a pointer to an initialized Sink Object
 func New(c httpClient, logger log.Logger) plugins.Syncer {
-	sink := &Sink{client: c, logger: logger}
-	return sink
-}
-
-// Info returns the brief information about the sink
-func (s *Sink) Info() plugins.Info {
-	return plugins.Info{
-		Description:  "Send metadata to stencil http service",
-		SampleConfig: sampleConfig,
-		Summary:      summary,
-		Tags:         []string{"http", "sink"},
+	s := &Sink{
+		logger: logger,
+		client: c,
 	}
-}
+	s.BasePlugin = plugins.NewBasePlugin(info, &s.config)
 
-// Validate validates the configuration of the sink
-func (s *Sink) Validate(configMap map[string]interface{}) (err error) {
-	return utils.BuildConfig(configMap, &Config{})
+	return s
 }
 
 // Init initializes the sink
-func (s *Sink) Init(_ context.Context, configMap map[string]interface{}) (err error) {
-	if err = utils.BuildConfig(configMap, &s.config); err != nil {
-		return plugins.InvalidConfigError{Type: plugins.PluginTypeSink}
+func (s *Sink) Init(ctx context.Context, config plugins.Config) (err error) {
+	if err = s.BasePlugin.Init(ctx, config); err != nil {
+		return err
 	}
 
 	return

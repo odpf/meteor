@@ -1,6 +1,7 @@
 name: recipe-three
 source:
   type: kafka
+  scope: my-scope
   config:
     broker: "main-broker.com:9092"
 sinks:

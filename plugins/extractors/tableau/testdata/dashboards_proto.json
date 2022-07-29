@@ -1,17 +1,17 @@
 [
     {
         "resource": {
-            "urn": "tableau::my-tableau/workbook/d74564cf-931c-2df2-fd8f-8b974fbc0b14",
+            "urn": "urn:tableau:test-tableau:workbook:d74564cf-931c-2df2-fd8f-8b974fbc0b14",
             "name": "Regional",
             "service": "tableau",
             "type": "dashboard"
         },
         "charts": [
             {
-                "urn": "tableau::my-tableau/sheet/2f97fce2-e291-e229-842d-b7af508aebfc",
+                "urn": "urn:tableau:test-tableau:sheet:2f97fce2-e291-e229-842d-b7af508aebfc",
                 "name": "Obesity Map",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/d74564cf-931c-2df2-fd8f-8b974fbc0b14",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:d74564cf-931c-2df2-fd8f-8b974fbc0b14",
                 "properties": {
                     "attributes": {
                         "id": "2f97fce2-e291-e229-842d-b7af508aebfc",
@@ -28,10 +28,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/4bef53d7-8b22-87f4-0077-c9c7bd090c08",
+                "urn": "urn:tableau:test-tableau:sheet:4bef53d7-8b22-87f4-0077-c9c7bd090c08",
                 "name": "S\u0026P Forward Returns",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/d74564cf-931c-2df2-fd8f-8b974fbc0b14",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:d74564cf-931c-2df2-fd8f-8b974fbc0b14",
                 "properties": {
                     "attributes": {
                         "id": "4bef53d7-8b22-87f4-0077-c9c7bd090c08",
@@ -48,10 +48,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/68cf24ed-f83c-b6f5-0f0c-a884895d9016",
+                "urn": "urn:tableau:test-tableau:sheet:68cf24ed-f83c-b6f5-0f0c-a884895d9016",
                 "name": "Heat Map",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/d74564cf-931c-2df2-fd8f-8b974fbc0b14",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:d74564cf-931c-2df2-fd8f-8b974fbc0b14",
                 "properties": {
                     "attributes": {
                         "id": "68cf24ed-f83c-b6f5-0f0c-a884895d9016",
@@ -68,10 +68,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/8616fd42-285c-4179-dea6-9f36e9f666e1",
+                "urn": "urn:tableau:test-tableau:sheet:8616fd42-285c-4179-dea6-9f36e9f666e1",
                 "name": "Scatter",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/d74564cf-931c-2df2-fd8f-8b974fbc0b14",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:d74564cf-931c-2df2-fd8f-8b974fbc0b14",
                 "properties": {
                     "attributes": {
                         "id": "8616fd42-285c-4179-dea6-9f36e9f666e1",
@@ -88,10 +88,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/924ac46b-b979-72d5-27c8-e96251c4a982",
+                "urn": "urn:tableau:test-tableau:sheet:924ac46b-b979-72d5-27c8-e96251c4a982",
                 "name": "College",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/d74564cf-931c-2df2-fd8f-8b974fbc0b14",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:d74564cf-931c-2df2-fd8f-8b974fbc0b14",
                 "properties": {
                     "attributes": {
                         "id": "924ac46b-b979-72d5-27c8-e96251c4a982",
@@ -108,10 +108,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/99c11133-00b6-dc1f-8e89-88e224f96210",
+                "urn": "urn:tableau:test-tableau:sheet:99c11133-00b6-dc1f-8e89-88e224f96210",
                 "name": "Flight Delays",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/d74564cf-931c-2df2-fd8f-8b974fbc0b14",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:d74564cf-931c-2df2-fd8f-8b974fbc0b14",
                 "properties": {
                     "attributes": {
                         "id": "99c11133-00b6-dc1f-8e89-88e224f96210",
@@ -128,10 +128,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/a0f461b6-6236-8c90-aaeb-be8218441ada",
+                "urn": "urn:tableau:test-tableau:sheet:a0f461b6-6236-8c90-aaeb-be8218441ada",
                 "name": "Stocks",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/d74564cf-931c-2df2-fd8f-8b974fbc0b14",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:d74564cf-931c-2df2-fd8f-8b974fbc0b14",
                 "properties": {
                     "attributes": {
                         "id": "a0f461b6-6236-8c90-aaeb-be8218441ada",
@@ -148,10 +148,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/b8b4b90b-783d-663d-2988-72781d4609cb",
+                "urn": "urn:tableau:test-tableau:sheet:b8b4b90b-783d-663d-2988-72781d4609cb",
                 "name": "S\u0026P Returns Vs Conditions",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/d74564cf-931c-2df2-fd8f-8b974fbc0b14",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:d74564cf-931c-2df2-fd8f-8b974fbc0b14",
                 "properties": {
                     "attributes": {
                         "id": "b8b4b90b-783d-663d-2988-72781d4609cb",
@@ -168,10 +168,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/c997983b-144f-ec1b-6a0f-1dfdeef63a97",
+                "urn": "urn:tableau:test-tableau:sheet:c997983b-144f-ec1b-6a0f-1dfdeef63a97",
                 "name": "Obesity Scatter Plot",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/d74564cf-931c-2df2-fd8f-8b974fbc0b14",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:d74564cf-931c-2df2-fd8f-8b974fbc0b14",
                 "properties": {
                     "attributes": {
                         "id": "c997983b-144f-ec1b-6a0f-1dfdeef63a97",
@@ -188,10 +188,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/d19fe52f-76db-a243-3381-56c40536dd18",
+                "urn": "urn:tableau:test-tableau:sheet:d19fe52f-76db-a243-3381-56c40536dd18",
                 "name": "S\u0026P Returns by Decade",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/d74564cf-931c-2df2-fd8f-8b974fbc0b14",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:d74564cf-931c-2df2-fd8f-8b974fbc0b14",
                 "properties": {
                     "attributes": {
                         "id": "d19fe52f-76db-a243-3381-56c40536dd18",
@@ -239,32 +239,32 @@
         "lineage": {
             "upstreams": [
                 {
-                    "urn": "hyper::6025bab5-2ce4-491b-90fd-891f1f33316c/6025bab5-2ce4-491b-90fd-891f1f33316c/Extract",
+                    "urn": "urn:hyper:6025bab5-2ce4-491b-90fd-891f1f33316c:bucket:6025bab5-2ce4-491b-90fd-891f1f33316c.Extract",
                     "service": "hyper",
                     "type": "bucket"
                 },
                 {
-                    "urn": "hyper::554717ae-4225-4652-97cc-cb6021a3de22/554717ae-4225-4652-97cc-cb6021a3de22/Extract",
+                    "urn": "urn:hyper:554717ae-4225-4652-97cc-cb6021a3de22:bucket:554717ae-4225-4652-97cc-cb6021a3de22.Extract",
                     "service": "hyper",
                     "type": "bucket"
                 },
                 {
-                    "urn": "hyper::f6538ebb-b95f-48da-af7b-12059ae4093f/f6538ebb-b95f-48da-af7b-12059ae4093f/Extract",
+                    "urn": "urn:hyper:f6538ebb-b95f-48da-af7b-12059ae4093f:bucket:f6538ebb-b95f-48da-af7b-12059ae4093f.Extract",
                     "service": "hyper",
                     "type": "bucket"
                 },
                 {
-                    "urn": "hyper::e7fc51cb-2a4a-4910-a429-2708e9c0c1b6/e7fc51cb-2a4a-4910-a429-2708e9c0c1b6/Extract",
+                    "urn": "urn:hyper:e7fc51cb-2a4a-4910-a429-2708e9c0c1b6:bucket:e7fc51cb-2a4a-4910-a429-2708e9c0c1b6.Extract",
                     "service": "hyper",
                     "type": "bucket"
                 },
                 {
-                    "urn": "hyper::8058bef9-5422-4e13-991b-fd233e5bace9/8058bef9-5422-4e13-991b-fd233e5bace9/Extract",
+                    "urn": "urn:hyper:8058bef9-5422-4e13-991b-fd233e5bace9:bucket:8058bef9-5422-4e13-991b-fd233e5bace9.Extract",
                     "service": "hyper",
                     "type": "bucket"
                 },
                 {
-                    "urn": "hyper::50344e6b-add1-4dd1-b73f-42b772cfa2c0/50344e6b-add1-4dd1-b73f-42b772cfa2c0/Extract",
+                    "urn": "urn:hyper:50344e6b-add1-4dd1-b73f-42b772cfa2c0:bucket:50344e6b-add1-4dd1-b73f-42b772cfa2c0.Extract",
                     "service": "hyper",
                     "type": "bucket"
                 }
@@ -273,7 +273,7 @@
     },
     {
         "resource": {
-            "urn": "tableau::my-tableau/workbook/e1f0aab7-e3ff-8727-8461-4d4294e220f0",
+            "urn": "urn:tableau:test-tableau:workbook:e1f0aab7-e3ff-8727-8461-4d4294e220f0",
             "name": "Superstore",
             "service": "tableau",
             "type": "dashboard",
@@ -281,10 +281,10 @@
         },
         "charts": [
             {
-                "urn": "tableau::my-tableau/sheet/0421101f-cd87-a6b9-e502-eca8f8e96a3a",
+                "urn": "urn:tableau:test-tableau:sheet:0421101f-cd87-a6b9-e502-eca8f8e96a3a",
                 "name": "CustomerOverview",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/e1f0aab7-e3ff-8727-8461-4d4294e220f0",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:e1f0aab7-e3ff-8727-8461-4d4294e220f0",
                 "properties": {
                     "attributes": {
                         "id": "0421101f-cd87-a6b9-e502-eca8f8e96a3a",
@@ -301,10 +301,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/109afef4-0607-b6d2-6219-7a7009a62a4c",
+                "urn": "urn:tableau:test-tableau:sheet:109afef4-0607-b6d2-6219-7a7009a62a4c",
                 "name": "QuotaAttainment",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/e1f0aab7-e3ff-8727-8461-4d4294e220f0",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:e1f0aab7-e3ff-8727-8461-4d4294e220f0",
                 "properties": {
                     "attributes": {
                         "id": "109afef4-0607-b6d2-6219-7a7009a62a4c",
@@ -321,10 +321,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/18a57261-20d9-ad1f-50f7-8ce832517257",
+                "urn": "urn:tableau:test-tableau:sheet:18a57261-20d9-ad1f-50f7-8ce832517257",
                 "name": "What If Forecast",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/e1f0aab7-e3ff-8727-8461-4d4294e220f0",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:e1f0aab7-e3ff-8727-8461-4d4294e220f0",
                 "properties": {
                     "attributes": {
                         "id": "18a57261-20d9-ad1f-50f7-8ce832517257",
@@ -341,10 +341,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/1cf1a77e-1aa7-82e4-d56f-4df6ef5804f0",
+                "urn": "urn:tableau:test-tableau:sheet:1cf1a77e-1aa7-82e4-d56f-4df6ef5804f0",
                 "name": "Product Detail Sheet",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/e1f0aab7-e3ff-8727-8461-4d4294e220f0",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:e1f0aab7-e3ff-8727-8461-4d4294e220f0",
                 "properties": {
                     "attributes": {
                         "id": "1cf1a77e-1aa7-82e4-d56f-4df6ef5804f0",
@@ -361,10 +361,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/2481cc92-cf3b-4547-45c3-62bf55c84193",
+                "urn": "urn:tableau:test-tableau:sheet:2481cc92-cf3b-4547-45c3-62bf55c84193",
                 "name": "CustomerScatter",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/e1f0aab7-e3ff-8727-8461-4d4294e220f0",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:e1f0aab7-e3ff-8727-8461-4d4294e220f0",
                 "properties": {
                     "attributes": {
                         "id": "2481cc92-cf3b-4547-45c3-62bf55c84193",
@@ -381,10 +381,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/363b1423-b446-28d1-d18a-f28676f5154b",
+                "urn": "urn:tableau:test-tableau:sheet:363b1423-b446-28d1-d18a-f28676f5154b",
                 "name": "Total Sales",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/e1f0aab7-e3ff-8727-8461-4d4294e220f0",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:e1f0aab7-e3ff-8727-8461-4d4294e220f0",
                 "properties": {
                     "attributes": {
                         "id": "363b1423-b446-28d1-d18a-f28676f5154b",
@@ -401,10 +401,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/3d04aec6-e611-f775-de41-ab642f800a8a",
+                "urn": "urn:tableau:test-tableau:sheet:3d04aec6-e611-f775-de41-ab642f800a8a",
                 "name": "Sale Map",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/e1f0aab7-e3ff-8727-8461-4d4294e220f0",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:e1f0aab7-e3ff-8727-8461-4d4294e220f0",
                 "properties": {
                     "attributes": {
                         "id": "3d04aec6-e611-f775-de41-ab642f800a8a",
@@ -421,10 +421,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/4d72181d-88d6-3fae-9824-67789cc0cbca",
+                "urn": "urn:tableau:test-tableau:sheet:4d72181d-88d6-3fae-9824-67789cc0cbca",
                 "name": "CommissionProjection",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/e1f0aab7-e3ff-8727-8461-4d4294e220f0",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:e1f0aab7-e3ff-8727-8461-4d4294e220f0",
                 "properties": {
                     "attributes": {
                         "id": "4d72181d-88d6-3fae-9824-67789cc0cbca",
@@ -441,10 +441,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/52a3e355-d6c6-d4e3-f5b3-9f5ff7f432b3",
+                "urn": "urn:tableau:test-tableau:sheet:52a3e355-d6c6-d4e3-f5b3-9f5ff7f432b3",
                 "name": "ShipSummary",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/e1f0aab7-e3ff-8727-8461-4d4294e220f0",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:e1f0aab7-e3ff-8727-8461-4d4294e220f0",
                 "properties": {
                     "attributes": {
                         "id": "52a3e355-d6c6-d4e3-f5b3-9f5ff7f432b3",
@@ -461,10 +461,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/64984186-af48-7b33-3c8b-e34950d0f8ac",
+                "urn": "urn:tableau:test-tableau:sheet:64984186-af48-7b33-3c8b-e34950d0f8ac",
                 "name": "Sales by Product",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/e1f0aab7-e3ff-8727-8461-4d4294e220f0",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:e1f0aab7-e3ff-8727-8461-4d4294e220f0",
                 "properties": {
                     "attributes": {
                         "id": "64984186-af48-7b33-3c8b-e34950d0f8ac",
@@ -481,10 +481,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/74096ebd-7253-292a-b0a7-d8f4c9a617ca",
+                "urn": "urn:tableau:test-tableau:sheet:74096ebd-7253-292a-b0a7-d8f4c9a617ca",
                 "name": "Performance",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/e1f0aab7-e3ff-8727-8461-4d4294e220f0",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:e1f0aab7-e3ff-8727-8461-4d4294e220f0",
                 "properties": {
                     "attributes": {
                         "id": "74096ebd-7253-292a-b0a7-d8f4c9a617ca",
@@ -501,10 +501,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/805d5e5e-1129-792c-0581-7f315c43829a",
+                "urn": "urn:tableau:test-tableau:sheet:805d5e5e-1129-792c-0581-7f315c43829a",
                 "name": "ProductDetails",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/e1f0aab7-e3ff-8727-8461-4d4294e220f0",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:e1f0aab7-e3ff-8727-8461-4d4294e220f0",
                 "properties": {
                     "attributes": {
                         "id": "805d5e5e-1129-792c-0581-7f315c43829a",
@@ -521,10 +521,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/8c7702e7-3bce-1865-38b2-887ec3d1026a",
+                "urn": "urn:tableau:test-tableau:sheet:8c7702e7-3bce-1865-38b2-887ec3d1026a",
                 "name": "Tooltip: Profit Ratio by City",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/e1f0aab7-e3ff-8727-8461-4d4294e220f0",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:e1f0aab7-e3ff-8727-8461-4d4294e220f0",
                 "properties": {
                     "attributes": {
                         "id": "8c7702e7-3bce-1865-38b2-887ec3d1026a",
@@ -541,10 +541,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/90f2fd1c-0ff2-1184-f37d-ebb6a2ac0ac8",
+                "urn": "urn:tableau:test-tableau:sheet:90f2fd1c-0ff2-1184-f37d-ebb6a2ac0ac8",
                 "name": "Forecast",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/e1f0aab7-e3ff-8727-8461-4d4294e220f0",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:e1f0aab7-e3ff-8727-8461-4d4294e220f0",
                 "properties": {
                     "attributes": {
                         "id": "90f2fd1c-0ff2-1184-f37d-ebb6a2ac0ac8",
@@ -561,10 +561,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/960d1086-d0af-e4fb-1678-e70fb7b373c5",
+                "urn": "urn:tableau:test-tableau:sheet:960d1086-d0af-e4fb-1678-e70fb7b373c5",
                 "name": "ShippingTrend",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/e1f0aab7-e3ff-8727-8461-4d4294e220f0",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:e1f0aab7-e3ff-8727-8461-4d4294e220f0",
                 "properties": {
                     "attributes": {
                         "id": "960d1086-d0af-e4fb-1678-e70fb7b373c5",
@@ -581,10 +581,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/a0073bd9-753c-be7c-d14c-4fdc70383e85",
+                "urn": "urn:tableau:test-tableau:sheet:a0073bd9-753c-be7c-d14c-4fdc70383e85",
                 "name": "OTE",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/e1f0aab7-e3ff-8727-8461-4d4294e220f0",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:e1f0aab7-e3ff-8727-8461-4d4294e220f0",
                 "properties": {
                     "attributes": {
                         "id": "a0073bd9-753c-be7c-d14c-4fdc70383e85",
@@ -601,10 +601,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/ae2f7cbc-c788-1f4f-12d5-810f9c8be43a",
+                "urn": "urn:tableau:test-tableau:sheet:ae2f7cbc-c788-1f4f-12d5-810f9c8be43a",
                 "name": "CustomerRank",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/e1f0aab7-e3ff-8727-8461-4d4294e220f0",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:e1f0aab7-e3ff-8727-8461-4d4294e220f0",
                 "properties": {
                     "attributes": {
                         "id": "ae2f7cbc-c788-1f4f-12d5-810f9c8be43a",
@@ -621,10 +621,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/c00babfb-1189-fe5c-b1bd-e8313f807b5c",
+                "urn": "urn:tableau:test-tableau:sheet:c00babfb-1189-fe5c-b1bd-e8313f807b5c",
                 "name": "Sales",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/e1f0aab7-e3ff-8727-8461-4d4294e220f0",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:e1f0aab7-e3ff-8727-8461-4d4294e220f0",
                 "properties": {
                     "attributes": {
                         "id": "c00babfb-1189-fe5c-b1bd-e8313f807b5c",
@@ -641,10 +641,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/cae8a658-437f-af6e-5725-4c8a355bc2c3",
+                "urn": "urn:tableau:test-tableau:sheet:cae8a658-437f-af6e-5725-4c8a355bc2c3",
                 "name": "DaystoShip",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/e1f0aab7-e3ff-8727-8461-4d4294e220f0",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:e1f0aab7-e3ff-8727-8461-4d4294e220f0",
                 "properties": {
                     "attributes": {
                         "id": "cae8a658-437f-af6e-5725-4c8a355bc2c3",
@@ -661,10 +661,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/e2b10503-01ce-aa3c-1dc0-a4200eedd98b",
+                "urn": "urn:tableau:test-tableau:sheet:e2b10503-01ce-aa3c-1dc0-a4200eedd98b",
                 "name": "Sales by Segment",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/e1f0aab7-e3ff-8727-8461-4d4294e220f0",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:e1f0aab7-e3ff-8727-8461-4d4294e220f0",
                 "properties": {
                     "attributes": {
                         "id": "e2b10503-01ce-aa3c-1dc0-a4200eedd98b",
@@ -681,10 +681,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/f5981591-d5c1-8842-5edf-845d121c0afa",
+                "urn": "urn:tableau:test-tableau:sheet:f5981591-d5c1-8842-5edf-845d121c0afa",
                 "name": "ProductView",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/e1f0aab7-e3ff-8727-8461-4d4294e220f0",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:e1f0aab7-e3ff-8727-8461-4d4294e220f0",
                 "properties": {
                     "attributes": {
                         "id": "f5981591-d5c1-8842-5edf-845d121c0afa",
@@ -732,17 +732,17 @@
         "lineage": {
             "upstreams": [
                 {
-                    "urn": "textscan::Sales Commission.csv/Sales Commission.csv/Sales Commission.csv",
+                    "urn": "urn:textscan:Sales Commission.csv:bucket:Sales Commission.csv.Sales Commission.csv",
                     "service": "textscan",
                     "type": "bucket"
                 },
                 {
-                    "urn": "excel-direct::Sample - Superstore.xls/Sample - Superstore.xls/Orders",
+                    "urn": "urn:excel-direct:Sample - Superstore.xls:bucket:Sample - Superstore.xls.Orders",
                     "service": "excel-direct",
                     "type": "bucket"
                 },
                 {
-                    "urn": "excel-direct::Sales Target (US).xlsx/Sales Target (US).xlsx/Sheet1",
+                    "urn": "urn:excel-direct:Sales Target (US).xlsx:bucket:Sales Target (US).xlsx.Sheet1",
                     "service": "excel-direct",
                     "type": "bucket"
                 }
@@ -751,17 +751,17 @@
     },
     {
         "resource": {
-            "urn": "tableau::my-tableau/workbook/d7db01c0-b311-6f47-31bf-ad1c42e67629",
+            "urn": "urn:tableau:test-tableau:workbook:d7db01c0-b311-6f47-31bf-ad1c42e67629",
             "name": "InMail Engagement",
             "service": "tableau",
             "type": "dashboard"
         },
         "charts": [
             {
-                "urn": "tableau::my-tableau/sheet/3250190d-e1f8-3e1e-e43e-3485ea87990e",
+                "urn": "urn:tableau:test-tableau:sheet:3250190d-e1f8-3e1e-e43e-3485ea87990e",
                 "name": "Best Day to Send InMails",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/d7db01c0-b311-6f47-31bf-ad1c42e67629",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:d7db01c0-b311-6f47-31bf-ad1c42e67629",
                 "properties": {
                     "attributes": {
                         "id": "3250190d-e1f8-3e1e-e43e-3485ea87990e",
@@ -778,10 +778,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/3b839abb-791b-8399-82a2-59915f9209be",
+                "urn": "urn:tableau:test-tableau:sheet:3b839abb-791b-8399-82a2-59915f9209be",
                 "name": "Number of InMail Sent",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/d7db01c0-b311-6f47-31bf-ad1c42e67629",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:d7db01c0-b311-6f47-31bf-ad1c42e67629",
                 "properties": {
                     "attributes": {
                         "id": "3b839abb-791b-8399-82a2-59915f9209be",
@@ -798,10 +798,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/3ec1ba6c-c8dd-7641-45e4-a2b2154d0052",
+                "urn": "urn:tableau:test-tableau:sheet:3ec1ba6c-c8dd-7641-45e4-a2b2154d0052",
                 "name": "Tooltip: volume InMail sent vs accepted by weekday",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/d7db01c0-b311-6f47-31bf-ad1c42e67629",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:d7db01c0-b311-6f47-31bf-ad1c42e67629",
                 "properties": {
                     "attributes": {
                         "id": "3ec1ba6c-c8dd-7641-45e4-a2b2154d0052",
@@ -818,10 +818,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/447bed17-7fb7-23c9-6207-78ed4c8bf769",
+                "urn": "urn:tableau:test-tableau:sheet:447bed17-7fb7-23c9-6207-78ed4c8bf769",
                 "name": "InMail Response Rate",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/d7db01c0-b311-6f47-31bf-ad1c42e67629",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:d7db01c0-b311-6f47-31bf-ad1c42e67629",
                 "properties": {
                     "attributes": {
                         "id": "447bed17-7fb7-23c9-6207-78ed4c8bf769",
@@ -838,10 +838,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/514b6c67-f4a2-70e9-5fbb-c7ba97477532",
+                "urn": "urn:tableau:test-tableau:sheet:514b6c67-f4a2-70e9-5fbb-c7ba97477532",
                 "name": "Tooltip: volume InMail sent vs accepted by time of day and weekday",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/d7db01c0-b311-6f47-31bf-ad1c42e67629",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:d7db01c0-b311-6f47-31bf-ad1c42e67629",
                 "properties": {
                     "attributes": {
                         "id": "514b6c67-f4a2-70e9-5fbb-c7ba97477532",
@@ -858,10 +858,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/881c5f1c-05c0-cccb-c778-0e9315d4d28f",
+                "urn": "urn:tableau:test-tableau:sheet:881c5f1c-05c0-cccb-c778-0e9315d4d28f",
                 "name": "InMail response rate by time of day",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/d7db01c0-b311-6f47-31bf-ad1c42e67629",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:d7db01c0-b311-6f47-31bf-ad1c42e67629",
                 "properties": {
                     "attributes": {
                         "id": "881c5f1c-05c0-cccb-c778-0e9315d4d28f",
@@ -878,10 +878,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/98e3c68b-3d72-4522-99e3-82e62ae6943f",
+                "urn": "urn:tableau:test-tableau:sheet:98e3c68b-3d72-4522-99e3-82e62ae6943f",
                 "name": "All Team Memeber Engagement",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/d7db01c0-b311-6f47-31bf-ad1c42e67629",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:d7db01c0-b311-6f47-31bf-ad1c42e67629",
                 "properties": {
                     "attributes": {
                         "id": "98e3c68b-3d72-4522-99e3-82e62ae6943f",
@@ -898,10 +898,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/9b98ebfa-f333-c487-4e39-8edf047499fa",
+                "urn": "urn:tableau:test-tableau:sheet:9b98ebfa-f333-c487-4e39-8edf047499fa",
                 "name": "Weekday by time of day response rate heatmap",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/d7db01c0-b311-6f47-31bf-ad1c42e67629",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:d7db01c0-b311-6f47-31bf-ad1c42e67629",
                 "properties": {
                     "attributes": {
                         "id": "9b98ebfa-f333-c487-4e39-8edf047499fa",
@@ -918,10 +918,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/a3edae7b-a14f-69f7-c126-3cdcc0fc6427",
+                "urn": "urn:tableau:test-tableau:sheet:a3edae7b-a14f-69f7-c126-3cdcc0fc6427",
                 "name": "Best Time to Send InMails",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/d7db01c0-b311-6f47-31bf-ad1c42e67629",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:d7db01c0-b311-6f47-31bf-ad1c42e67629",
                 "properties": {
                     "attributes": {
                         "id": "a3edae7b-a14f-69f7-c126-3cdcc0fc6427",
@@ -938,10 +938,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/a91805a6-403c-6797-caca-d5aa14ffa136",
+                "urn": "urn:tableau:test-tableau:sheet:a91805a6-403c-6797-caca-d5aa14ffa136",
                 "name": "InMail Response Rate Timeline",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/d7db01c0-b311-6f47-31bf-ad1c42e67629",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:d7db01c0-b311-6f47-31bf-ad1c42e67629",
                 "properties": {
                     "attributes": {
                         "id": "a91805a6-403c-6797-caca-d5aa14ffa136",
@@ -958,10 +958,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/c5ddca41-13eb-a01a-0072-6aef8f1dd57b",
+                "urn": "urn:tableau:test-tableau:sheet:c5ddca41-13eb-a01a-0072-6aef8f1dd57b",
                 "name": "Tooltip: volume InMail sent vs accepted by time of day",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/d7db01c0-b311-6f47-31bf-ad1c42e67629",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:d7db01c0-b311-6f47-31bf-ad1c42e67629",
                 "properties": {
                     "attributes": {
                         "id": "c5ddca41-13eb-a01a-0072-6aef8f1dd57b",
@@ -978,10 +978,10 @@
                 }
             },
             {
-                "urn": "tableau::my-tableau/sheet/e8bde842-c7bc-57a0-8138-251190f520b1",
+                "urn": "urn:tableau:test-tableau:sheet:e8bde842-c7bc-57a0-8138-251190f520b1",
                 "name": "InMail response by weekday",
                 "source": "tableau",
-                "dashboard_urn": "tableau::my-tableau/workbook/d7db01c0-b311-6f47-31bf-ad1c42e67629",
+                "dashboard_urn": "urn:tableau:test-tableau:workbook:d7db01c0-b311-6f47-31bf-ad1c42e67629",
                 "properties": {
                     "attributes": {
                         "id": "e8bde842-c7bc-57a0-8138-251190f520b1",
@@ -1029,17 +1029,17 @@
         "lineage": {
             "upstreams": [
                 {
-                    "urn": "webdata-direct:linkedin-snap::https://connectors.tableau.com/linkedin/snap/1/snap.html/Sales Navigator Connection/ActivityOutcome",
+                    "urn": "urn:webdata-direct:linkedin-snap:https://connectors.tableau.com/linkedin/snap/1/snap.html:table:Sales Navigator Connection.ActivityOutcome",
                     "service": "webdata-direct:linkedin-snap",
                     "type": "table"
                 },
                 {
-                    "urn": "webdata-direct:linkedin-snap::https://connectors.tableau.com/linkedin/snap/1/snap.html/Sales Navigator Connection/Activity",
+                    "urn": "urn:webdata-direct:linkedin-snap:https://connectors.tableau.com/linkedin/snap/1/snap.html:table:Sales Navigator Connection.Activity",
                     "service": "webdata-direct:linkedin-snap",
                     "type": "table"
                 },
                 {
-                    "urn": "webdata-direct:linkedin-snap::https://connectors.tableau.com/linkedin/snap/1/snap.html/Sales Navigator Connection/UniqueSeat",
+                    "urn": "urn:webdata-direct:linkedin-snap:https://connectors.tableau.com/linkedin/snap/1/snap.html:table:Sales Navigator Connection.UniqueSeat",
                     "service": "webdata-direct:linkedin-snap",
                     "type": "table"
                 }

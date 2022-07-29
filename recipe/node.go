@@ -20,6 +20,7 @@ type RecipeNode struct {
 type PluginNode struct {
 	Name   yaml.Node            `json:"name" yaml:"name"`
 	Type   yaml.Node            `json:"type" yaml:"type"`
+	Scope  yaml.Node            `json:"scope" yaml:"scope"`
 	Config map[string]yaml.Node `json:"config" yaml:"config"`
 }
 
@@ -60,11 +61,13 @@ func (node RecipeNode) toRecipe() (recipe Recipe, err error) {
 		err = fmt.Errorf("error building sinks :%w", err)
 		return
 	}
+
 	recipe = Recipe{
 		Name:    node.Name.Value,
 		Version: node.Version.Value,
 		Source: PluginRecipe{
 			Name:   node.Source.Name.Value,
+			Scope:  node.Source.Scope.Value,
 			Config: sourceConfig,
 			Node:   node.Source,
 		},

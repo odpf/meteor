@@ -3,7 +3,7 @@ package auditlog
 import (
 	"testing"
 
-	"github.com/odpf/meteor/models"
+	"github.com/odpf/meteor/plugins/extractors/bigquery/util"
 	"github.com/stretchr/testify/assert"
 	loggingpb "google.golang.org/genproto/googleapis/cloud/bigquery/logging/v1"
 	statuspb "google.golang.org/genproto/googleapis/rpc/status"
@@ -206,9 +206,9 @@ func TestGetReferencedTablesURN(t *testing.T) {
 		rts := testDataLogData1.GetReferencedTablesURN()
 
 		expectedRefTablesURN := []string{
-			models.TableURN("bigquery", "project1", "dataset1", "table1"),
-			models.TableURN("bigquery", "project2", "dataset1", "table1"),
-			models.TableURN("bigquery", "project3", "dataset1", "table1"),
+			util.TableURN("project1", "dataset1", "table1"),
+			util.TableURN("project2", "dataset1", "table1"),
+			util.TableURN("project3", "dataset1", "table1"),
 		}
 		assert.EqualValues(t, expectedRefTablesURN, rts)
 	})

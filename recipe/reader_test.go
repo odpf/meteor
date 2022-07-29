@@ -42,7 +42,8 @@ func TestReaderRead(t *testing.T) {
 				{
 					Name: "test-recipe",
 					Source: recipe.PluginRecipe{
-						Name: "test-source",
+						Name:  "test-source",
+						Scope: "my-scope",
 						Config: map[string]interface{}{
 							"foo": "bar",
 						},
@@ -73,7 +74,8 @@ func TestReaderRead(t *testing.T) {
 					Name:    "test-recipe-no-name",
 					Version: "v1beta1",
 					Source: recipe.PluginRecipe{
-						Name: "test-source",
+						Name:  "test-source",
+						Scope: "my-scope",
 						Config: map[string]interface{}{
 							"foo": "bar",
 						},
@@ -110,7 +112,8 @@ func TestReaderRead(t *testing.T) {
 			{
 				Name: "test-recipe",
 				Source: recipe.PluginRecipe{
-					Name: "test-source",
+					Name:  "test-source",
+					Scope: "my-scope",
 					Config: map[string]interface{}{
 						"username": username,
 						"password": password,
@@ -165,7 +168,8 @@ func TestReaderRead(t *testing.T) {
 			{
 				Name: "test-recipe-no-name",
 				Source: recipe.PluginRecipe{
-					Name: "test-source",
+					Name:  "test-source",
+					Scope: "my-scope",
 					Config: map[string]interface{}{
 						"foo": "bar",
 					},
@@ -180,7 +184,8 @@ func TestReaderRead(t *testing.T) {
 			{
 				Name: "test-recipe",
 				Source: recipe.PluginRecipe{
-					Name: "test-source",
+					Name:  "test-source",
+					Scope: "my-scope",
 					Config: map[string]interface{}{
 						"username": username,
 						"password": password,
@@ -202,7 +207,8 @@ func TestReaderRead(t *testing.T) {
 			{
 				Name: "test-recipe",
 				Source: recipe.PluginRecipe{
-					Name: "test-source",
+					Name:  "test-source",
+					Scope: "my-scope",
 					Config: map[string]interface{}{
 						"foo": "bar",
 					},
@@ -232,7 +238,8 @@ func TestReaderRead(t *testing.T) {
 		expected := recipe.Recipe{
 			Name: "test-recipe",
 			Source: recipe.PluginRecipe{
-				Name: "test-source",
+				Name:  "test-source",
+				Scope: "my-scope",
 				Config: map[string]interface{}{
 					"username": username,
 					"password": password,
@@ -263,7 +270,8 @@ func TestReaderRead(t *testing.T) {
 		expected := recipe.Recipe{
 			Name: "test-recipe",
 			Source: recipe.PluginRecipe{
-				Name: "test-source",
+				Name:  "test-source",
+				Scope: "my-scope",
 				Config: map[string]interface{}{
 					"username": username,
 					"password": password,
@@ -304,6 +312,7 @@ func compareRecipes(t *testing.T, expected, actual recipe.Recipe) {
 	assert.Equal(t, len(expected.Processors), len(actual.Processors))
 
 	assert.Equal(t, expected.Source.Name, actual.Source.Name)
+	assert.Equal(t, expected.Source.Scope, actual.Source.Scope)
 	assert.Equal(t, expected.Source.Config, actual.Source.Config)
 	for i := range actual.Sinks {
 		assert.Equal(t, expected.Sinks[i].Name, actual.Sinks[i].Name)

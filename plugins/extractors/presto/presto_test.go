@@ -7,6 +7,10 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
+	"os"
+	"testing"
+
 	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/plugins/extractors/presto"
@@ -16,14 +20,12 @@ import (
 	"github.com/ory/dockertest/v3/docker"
 	_ "github.com/prestodb/presto-go-client/presto"
 	"github.com/stretchr/testify/assert"
-	"log"
-	"os"
-	"testing"
 )
 
 const (
-	user = "presto"
-	port = "8888"
+	user     = "presto"
+	port     = "8888"
+	urnScope = "test-presto"
 )
 
 var (
@@ -71,10 +73,12 @@ func TestMain(m *testing.M) {
 // TestInit tests the configs
 func TestInit(t *testing.T) {
 	t.Run("should return error for invalid config", func(t *testing.T) {
-		err := presto.New(utils.Logger).Init(context.TODO(), map[string]interface{}{
-			"invalid_config": "invalid_config_value",
-		})
-		assert.Equal(t, plugins.InvalidConfigError{}, err)
+		err := presto.New(utils.Logger).Init(context.TODO(), plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"invalid_config": "invalid_config_value",
+			}})
+		assert.ErrorAs(t, err, &plugins.InvalidConfigError{})
 	})
 }
 
@@ -84,10 +88,12 @@ func TestExtract(t *testing.T) {
 		ctx := context.TODO()
 		newExtractor := presto.New(utils.Logger)
 
-		if err := newExtractor.Init(ctx, map[string]interface{}{
-			"connection_url":  fmt.Sprintf("http://%s@%s", user, host),
-			"exclude_catalog": "memory,jmx,tpcds,tpch", // only system catalog is not excluded
-		}); err != nil {
+		if err := newExtractor.Init(ctx, plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"connection_url":  fmt.Sprintf("http://%s@%s", user, host),
+				"exclude_catalog": "memory,jmx,tpcds,tpch", // only system catalog is not excluded
+			}}); err != nil {
 			t.Fatal(err)
 		}
 

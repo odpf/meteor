@@ -30,9 +30,10 @@ import (
 var db *sql.DB
 
 const (
-	user = "meteor_test_user"
-	pass = "pass"
-	port = "3310"
+	user     = "meteor_test_user"
+	pass     = "pass"
+	port     = "3310"
+	urnScope = "test-mysql"
 )
 
 var host = "localhost:" + port
@@ -81,11 +82,13 @@ func TestMain(m *testing.M) {
 
 func TestInit(t *testing.T) {
 	t.Run("should return error for invalid configs", func(t *testing.T) {
-		err := mysql.New(utils.Logger).Init(context.TODO(), map[string]interface{}{
-			"invalid_config": "invalid_config_value",
-		})
+		err := mysql.New(utils.Logger).Init(context.TODO(), plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"invalid_config": "invalid_config_value",
+			}})
 
-		assert.Equal(t, plugins.InvalidConfigError{}, err)
+		assert.ErrorAs(t, err, &plugins.InvalidConfigError{})
 	})
 }
 
@@ -94,10 +97,11 @@ func TestExtract(t *testing.T) {
 		ctx := context.TODO()
 		extr := mysql.New(utils.Logger)
 
-		err := extr.Init(ctx, map[string]interface{}{
-			"connection_url": fmt.Sprintf("%s:%s@tcp(%s)/", user, pass, host),
-			"identifier":     "my-mysql",
-		})
+		err := extr.Init(ctx, plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"connection_url": fmt.Sprintf("%s:%s@tcp(%s)/", user, pass, host),
+			}})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -153,9 +157,10 @@ func getExpected() []models.Record {
 	return []models.Record{
 		models.NewRecord(&assetsv1beta1.Table{
 			Resource: &commonv1beta1.Resource{
-				Urn:  "mysql::my-mysql/mockdata_meteor_metadata_test/applicant",
-				Name: "applicant",
-				Type: "table",
+				Urn:     "urn:mysql:test-mysql:table:mockdata_meteor_metadata_test.applicant",
+				Name:    "applicant",
+				Service: "mysql",
+				Type:    "table",
 			},
 			Schema: &facetsv1beta1.Columns{
 				Columns: []*facetsv1beta1.Column{
@@ -185,9 +190,10 @@ func getExpected() []models.Record {
 		}),
 		models.NewRecord(&assetsv1beta1.Table{
 			Resource: &commonv1beta1.Resource{
-				Urn:  "mysql::my-mysql/mockdata_meteor_metadata_test/jobs",
-				Name: "jobs",
-				Type: "table",
+				Urn:     "urn:mysql:test-mysql:table:mockdata_meteor_metadata_test.jobs",
+				Name:    "jobs",
+				Service: "mysql",
+				Type:    "table",
 			},
 			Schema: &facetsv1beta1.Columns{
 				Columns: []*facetsv1beta1.Column{

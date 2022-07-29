@@ -17,12 +17,12 @@ func (m *Plugin) Info() plugins.Info {
 	return args.Get(0).(plugins.Info)
 }
 
-func (m *Plugin) Validate(config map[string]interface{}) error {
+func (m *Plugin) Validate(config plugins.Config) error {
 	args := m.Called(config)
 	return args.Error(0)
 }
 
-func (m *Plugin) Init(ctx context.Context, config map[string]interface{}) error {
+func (m *Plugin) Init(ctx context.Context, config plugins.Config) error {
 	args := m.Called(ctx, config)
 	return args.Error(0)
 }

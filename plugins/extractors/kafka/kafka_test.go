@@ -29,6 +29,7 @@ import (
 
 var (
 	brokerHost = "localhost:9093"
+	urnScope   = "test-kafka"
 )
 
 func TestMain(m *testing.M) {
@@ -98,11 +99,13 @@ func TestMain(m *testing.M) {
 
 func TestInit(t *testing.T) {
 	t.Run("should return error for invalid config", func(t *testing.T) {
-		err := newExtractor().Init(context.TODO(), map[string]interface{}{
-			"wrong-config": "wrong-value",
-		})
+		err := newExtractor().Init(context.TODO(), plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"wrong-config": "wrong-value",
+			}})
 
-		assert.Equal(t, plugins.InvalidConfigError{}, err)
+		assert.ErrorAs(t, err, &plugins.InvalidConfigError{})
 	})
 }
 
@@ -110,10 +113,11 @@ func TestExtract(t *testing.T) {
 	t.Run("should emit list of topic metadata", func(t *testing.T) {
 		ctx := context.TODO()
 		extr := newExtractor()
-		err := extr.Init(ctx, map[string]interface{}{
-			"broker": brokerHost,
-			"label":  "my-kafka-cluster",
-		})
+		err := extr.Init(ctx, plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"broker": brokerHost,
+			}})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -126,7 +130,7 @@ func TestExtract(t *testing.T) {
 		expected := []models.Record{
 			models.NewRecord(&assetsv1beta1.Topic{
 				Resource: &commonv1beta1.Resource{
-					Urn:     "kafka::my-kafka-cluster/meteor-test-topic-1",
+					Urn:     "urn:kafka:test-kafka:topic:meteor-test-topic-1",
 					Name:    "meteor-test-topic-1",
 					Service: "kafka",
 					Type:    "topic",
@@ -137,7 +141,7 @@ func TestExtract(t *testing.T) {
 			}),
 			models.NewRecord(&assetsv1beta1.Topic{
 				Resource: &commonv1beta1.Resource{
-					Urn:     "kafka::my-kafka-cluster/meteor-test-topic-2",
+					Urn:     "urn:kafka:test-kafka:topic:meteor-test-topic-2",
 					Name:    "meteor-test-topic-2",
 					Service: "kafka",
 					Type:    "topic",
@@ -148,7 +152,7 @@ func TestExtract(t *testing.T) {
 			}),
 			models.NewRecord(&assetsv1beta1.Topic{
 				Resource: &commonv1beta1.Resource{
-					Urn:     "kafka::my-kafka-cluster/meteor-test-topic-3",
+					Urn:     "urn:kafka:test-kafka:topic:meteor-test-topic-3",
 					Name:    "meteor-test-topic-3",
 					Service: "kafka",
 					Type:    "topic",

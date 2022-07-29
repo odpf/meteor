@@ -5,7 +5,11 @@ package redash_test
 
 import (
 	"context"
-	"fmt"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"testing"
+
 	"github.com/odpf/meteor/models"
 	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
 	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
@@ -16,13 +20,10 @@ import (
 	"github.com/odpf/meteor/test/utils"
 	util "github.com/odpf/meteor/utils"
 	"github.com/stretchr/testify/assert"
-	"net/http"
-	"net/http/httptest"
-	"os"
-	"testing"
 )
 
 var testServer *httptest.Server
+var urnScope = "test-redash"
 
 func TestMain(m *testing.M) {
 	testServer = NewTestServer()
@@ -37,20 +38,24 @@ func TestMain(m *testing.M) {
 // TestInit tests the configs
 func TestInit(t *testing.T) {
 	t.Run("should return error if for empty base_url in config", func(t *testing.T) {
-		err := redash.New(utils.Logger).Init(context.TODO(), map[string]interface{}{
-			"base_url": "",
-			"api_key":  "checkAPI",
-		})
-		assert.Equal(t, plugins.InvalidConfigError{}, err)
+		err := redash.New(utils.Logger).Init(context.TODO(), plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"base_url": "",
+				"api_key":  "checkAPI",
+			}})
+		assert.ErrorAs(t, err, &plugins.InvalidConfigError{})
 	})
 
 	t.Run("should return error if for empty api_key in config", func(t *testing.T) {
-		err := redash.New(utils.Logger).Init(context.TODO(), map[string]interface{}{
-			"base_url": testServer.URL,
-			"api_key":  "",
-		})
+		err := redash.New(utils.Logger).Init(context.TODO(), plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"base_url": testServer.URL,
+				"api_key":  "",
+			}})
 
-		assert.Equal(t, plugins.InvalidConfigError{}, err)
+		assert.ErrorAs(t, err, &plugins.InvalidConfigError{})
 	})
 }
 
@@ -60,7 +65,7 @@ func TestExtract(t *testing.T) {
 		expectedData := []models.Record{
 			models.NewRecord(&assetsv1beta1.Dashboard{
 				Resource: &commonv1beta1.Resource{
-					Urn:     fmt.Sprintf("redash::%s/dashboard/421", testServer.URL),
+					Urn:     "urn:redash:test-redash:dashboard:421",
 					Name:    "firstDashboard",
 					Service: "redash",
 					Type:    "dashboard",
@@ -76,7 +81,7 @@ func TestExtract(t *testing.T) {
 			}),
 			models.NewRecord(&assetsv1beta1.Dashboard{
 				Resource: &commonv1beta1.Resource{
-					Urn:     fmt.Sprintf("redash::%s/dashboard/634", testServer.URL),
+					Urn:     "urn:redash:test-redash:dashboard:634",
 					Name:    "secondDashboard",
 					Service: "redash",
 					Type:    "dashboard",
@@ -94,10 +99,12 @@ func TestExtract(t *testing.T) {
 
 		ctx := context.TODO()
 		extractor := redash.New(utils.Logger)
-		err := extractor.Init(ctx, map[string]interface{}{
-			"base_url": testServer.URL,
-			"api_key":  "checkAPI",
-		})
+		err := extractor.Init(ctx, plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"base_url": testServer.URL,
+				"api_key":  "checkAPI",
+			}})
 		if err != nil {
 			t.Fatal(err)
 		}

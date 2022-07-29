@@ -26,46 +26,55 @@ var (
 	sitename = "testdev550928"
 	username = "meteor_user"
 	password = "xxxxxxxxxx"
+	urnScope = "test-tableau"
 )
 
 func TestInit(t *testing.T) {
 	t.Run("should return error for invalid config", func(t *testing.T) {
-		err := tableau.New(testutils.Logger).Init(context.TODO(), map[string]interface{}{
-			"host": "invalid_host",
-		})
+		err := tableau.New(testutils.Logger).Init(context.TODO(), plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"host": "invalid_host",
+			}})
 
-		assert.Equal(t, plugins.InvalidConfigError{}, err)
+		assert.ErrorAs(t, err, &plugins.InvalidConfigError{})
 	})
 	t.Run("should return error for password missing with username", func(t *testing.T) {
-		err := tableau.New(testutils.Logger).Init(context.TODO(), map[string]interface{}{
-			"host":       host,
-			"version":    version,
-			"identifier": "my-tableau",
-			"sitename":   sitename,
-			"username":   username,
-		})
+		err := tableau.New(testutils.Logger).Init(context.TODO(), plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"host":       host,
+				"version":    version,
+				"identifier": "my-tableau",
+				"sitename":   sitename,
+				"username":   username,
+			}})
 
-		assert.Equal(t, plugins.InvalidConfigError{}, err)
+		assert.ErrorAs(t, err, &plugins.InvalidConfigError{})
 	})
 	t.Run("should return error for site_id and auth_token missing", func(t *testing.T) {
-		err := tableau.New(testutils.Logger).Init(context.TODO(), map[string]interface{}{
-			"host":       host,
-			"version":    version,
-			"identifier": "my-tableau",
-			"sitename":   sitename,
-		})
+		err := tableau.New(testutils.Logger).Init(context.TODO(), plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"host":       host,
+				"version":    version,
+				"identifier": "my-tableau",
+				"sitename":   sitename,
+			}})
 
-		assert.Equal(t, plugins.InvalidConfigError{}, err)
+		assert.ErrorAs(t, err, &plugins.InvalidConfigError{})
 	})
 	t.Run("should return no error for config with site_id and auth_token without username", func(t *testing.T) {
-		err := tableau.New(testutils.Logger).Init(context.TODO(), map[string]interface{}{
-			"host":       host,
-			"version":    version,
-			"identifier": "my-tableau",
-			"sitename":   sitename,
-			"site_id":    "xxxxxxxxx",
-			"auth_token": "xxxxxxxxx",
-		})
+		err := tableau.New(testutils.Logger).Init(context.TODO(), plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"host":       host,
+				"version":    version,
+				"identifier": "my-tableau",
+				"sitename":   sitename,
+				"site_id":    "xxxxxxxxx",
+				"auth_token": "xxxxxxxxx",
+			}})
 		assert.NoError(t, err)
 	})
 }
@@ -83,14 +92,16 @@ func TestExtract(t *testing.T) {
 			tableau.WithHTTPClient(&http.Client{
 				Transport: r,
 			}))
-		err = extr.Init(ctx, map[string]interface{}{
-			"host":       host,
-			"version":    version,
-			"identifier": "my-tableau",
-			"sitename":   sitename,
-			"username":   username,
-			"password":   password,
-		})
+		err = extr.Init(ctx, plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"host":       host,
+				"version":    version,
+				"identifier": "my-tableau",
+				"sitename":   sitename,
+				"username":   username,
+				"password":   password,
+			}})
 		if err != nil {
 			t.Fatal(err)
 		}

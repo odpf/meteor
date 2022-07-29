@@ -34,6 +34,7 @@ const (
 	provider       = "db"
 	dashboardTitle = "random dashboard"
 	mockChart      = "random chart"
+	urnScope       = "test-superset"
 )
 
 var (
@@ -144,11 +145,13 @@ func TestMain(m *testing.M) {
 // TestInit tests the configs
 func TestInit(t *testing.T) {
 	t.Run("should return error for invalid config", func(t *testing.T) {
-		err := superset.New(utils.Logger).Init(context.TODO(), map[string]interface{}{
-			"user_id": "user",
-			"host":    host,
-		})
-		assert.Equal(t, plugins.InvalidConfigError{}, err)
+		err := superset.New(utils.Logger).Init(context.TODO(), plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"user_id": "user",
+				"host":    host,
+			}})
+		assert.ErrorAs(t, err, &plugins.InvalidConfigError{})
 	})
 }
 
@@ -157,12 +160,14 @@ func TestExtract(t *testing.T) {
 	t.Run("should return dashboard model", func(t *testing.T) {
 		ctx := context.TODO()
 		extr := superset.New(utils.Logger)
-		err := extr.Init(ctx, map[string]interface{}{
-			"username": user,
-			"password": pass,
-			"host":     host,
-			"provider": provider,
-		})
+		err := extr.Init(ctx, plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"username": user,
+				"password": pass,
+				"host":     host,
+				"provider": provider,
+			}})
 		if err != nil {
 			t.Fatal(err)
 		}

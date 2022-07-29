@@ -35,6 +35,7 @@ const (
 	port      = "1521"
 	defaultDB = "xe"
 	sysUser   = "system"
+	urnScope  = "test-oracle"
 )
 
 var host = "localhost:" + port
@@ -77,12 +78,14 @@ func TestMain(m *testing.M) {
 
 func TestInit(t *testing.T) {
 	t.Run("should return error for invalid config", func(t *testing.T) {
-		err := oracle.New(utils.Logger).Init(context.TODO(), map[string]interface{}{
-			"password": "pass",
-			"host":     host,
-		})
+		err := oracle.New(utils.Logger).Init(context.TODO(), plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"password": "pass",
+				"host":     host,
+			}})
 
-		assert.Equal(t, plugins.InvalidConfigError{}, err)
+		assert.ErrorAs(t, err, &plugins.InvalidConfigError{})
 	})
 }
 
@@ -91,9 +94,11 @@ func TestExtract(t *testing.T) {
 		ctx := context.TODO()
 		extr := oracle.New(utils.Logger)
 
-		err := extr.Init(ctx, map[string]interface{}{
-			"connection_url": fmt.Sprintf("oracle://%s:%s@%s/%s", user, password, host, defaultDB),
-		})
+		err := extr.Init(ctx, plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"connection_url": fmt.Sprintf("oracle://%s:%s@%s/%s", user, password, host, defaultDB),
+			}})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -157,9 +162,9 @@ func getExpected() []models.Record {
 	return []models.Record{
 		models.NewRecord(&assetsv1beta1.Table{
 			Resource: &commonv1beta1.Resource{
-				Urn:     "XE.EMPLOYEE",
+				Urn:     "urn:oracle:test-oracle:table:XE.EMPLOYEE",
 				Name:    "EMPLOYEE",
-				Service: "Oracle",
+				Service: "oracle",
 				Type:    "table",
 			},
 			Profile: &assetsv1beta1.TableProfile{
@@ -188,9 +193,9 @@ func getExpected() []models.Record {
 		}),
 		models.NewRecord(&assetsv1beta1.Table{
 			Resource: &commonv1beta1.Resource{
-				Urn:     "XE.DEPARTMENT",
+				Urn:     "urn:oracle:test-oracle:table:XE.DEPARTMENT",
 				Name:    "DEPARTMENT",
-				Service: "Oracle",
+				Service: "oracle",
 				Type:    "table",
 			},
 			Profile: &assetsv1beta1.TableProfile{

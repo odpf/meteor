@@ -33,6 +33,7 @@ const (
 	pass       = "pass"
 	globalhost = "%"
 	port       = "9000"
+	urnScope   = "test-clickhouse"
 )
 
 var (
@@ -88,11 +89,13 @@ func TestMain(m *testing.M) {
 
 func TestInit(t *testing.T) {
 	t.Run("should return error for invalid configuration", func(t *testing.T) {
-		err := newExtractor().Init(context.TODO(), map[string]interface{}{
-			"invalid_config": "invalid_config_value",
-		})
+		err := newExtractor().Init(context.TODO(), plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"invalid_config": "invalid_config_value",
+			}})
 
-		assert.Equal(t, plugins.InvalidConfigError{}, err)
+		assert.ErrorAs(t, err, &plugins.InvalidConfigError{})
 	})
 }
 
@@ -100,8 +103,11 @@ func TestExtract(t *testing.T) {
 	t.Run("should return mockdata we generated with clickhouse running on localhost", func(t *testing.T) {
 		ctx := context.TODO()
 		extr := newExtractor()
-		err := extr.Init(ctx, map[string]interface{}{
-			"connection_url": fmt.Sprintf("tcp://%s?username=default&password=%s&debug=true", host, pass),
+		err := extr.Init(ctx, plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"connection_url": fmt.Sprintf("tcp://%s?username=default&password=%s&debug=true", host, pass),
+			},
 		})
 		if err != nil {
 			t.Fatal(err)
@@ -121,9 +127,10 @@ func getExpected() []models.Record {
 	return []models.Record{
 		models.NewRecord(&assetsv1beta1.Table{
 			Resource: &commonv1beta1.Resource{
-				Urn:  "mockdata_meteor_metadata_test.applicant",
-				Name: "applicant",
-				Type: "table",
+				Urn:     "urn:clickhouse:test-clickhouse:table:mockdata_meteor_metadata_test.applicant",
+				Name:    "applicant",
+				Service: "clickhouse",
+				Type:    "table",
 			},
 			Schema: &facetsv1beta1.Columns{
 				Columns: []*facetsv1beta1.Column{
@@ -147,9 +154,10 @@ func getExpected() []models.Record {
 		}),
 		models.NewRecord(&assetsv1beta1.Table{
 			Resource: &commonv1beta1.Resource{
-				Urn:  "mockdata_meteor_metadata_test.jobs",
-				Name: "jobs",
-				Type: "table",
+				Urn:     "urn:clickhouse:test-clickhouse:table:mockdata_meteor_metadata_test.jobs",
+				Name:    "jobs",
+				Service: "clickhouse",
+				Type:    "table",
 			},
 			Schema: &facetsv1beta1.Columns{
 				Columns: []*facetsv1beta1.Column{

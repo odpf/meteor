@@ -15,7 +15,6 @@ import (
 	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
-	"github.com/odpf/meteor/utils"
 	"github.com/odpf/salt/log"
 )
 
@@ -30,9 +29,17 @@ type Config struct {
 var sampleConfig = `
 connection_url: "tcp://localhost:3306?username=admin&password=pass123&debug=true"`
 
+var info = plugins.Info{
+	Description:  "Column-oriented DBMS for online analytical processing.",
+	SampleConfig: sampleConfig,
+	Summary:      summary,
+	Tags:         []string{"oss", "extractor"},
+}
+
 // Extractor manages the output stream
 // and logger interface for the extractor
 type Extractor struct {
+	plugins.BaseExtractor
 	config Config
 	logger log.Logger
 	db     *sql.DB
@@ -40,30 +47,18 @@ type Extractor struct {
 
 // New returns a pointer to an initialized Extractor Object
 func New(logger log.Logger) *Extractor {
-	return &Extractor{
+	e := &Extractor{
 		logger: logger,
 	}
-}
+	e.BaseExtractor = plugins.NewBaseExtractor(info, &e.config)
 
-// Info returns the brief information about the extractor
-func (e *Extractor) Info() plugins.Info {
-	return plugins.Info{
-		Description:  "Column-oriented DBMS for online analytical processing.",
-		SampleConfig: sampleConfig,
-		Summary:      summary,
-		Tags:         []string{"oss", "extractor"},
-	}
-}
-
-// Validate validates the configuration of the extractor
-func (e *Extractor) Validate(configMap map[string]interface{}) (err error) {
-	return utils.BuildConfig(configMap, &Config{})
+	return e
 }
 
 // Init initializes the extractor
-func (e *Extractor) Init(ctx context.Context, configMap map[string]interface{}) (err error) {
-	if err = utils.BuildConfig(configMap, &e.config); err != nil {
-		return plugins.InvalidConfigError{}
+func (e *Extractor) Init(ctx context.Context, config plugins.Config) (err error) {
+	if err = e.BaseExtractor.Init(ctx, config); err != nil {
+		return err
 	}
 
 	if e.db, err = sql.Open("clickhouse", e.config.ConnectionURL); err != nil {
@@ -73,7 +68,7 @@ func (e *Extractor) Init(ctx context.Context, configMap map[string]interface{}) 
 	return
 }
 
-//Extract checks if the extractor is configured and
+// Extract checks if the extractor is configured and
 // if the connection to the DB is successful
 // and then starts the extraction process
 func (e *Extractor) Extract(ctx context.Context, emit plugins.Emit) (err error) {
@@ -106,9 +101,10 @@ func (e *Extractor) extractTables(emit plugins.Emit) (err error) {
 
 		emit(models.NewRecord(&assetsv1beta1.Table{
 			Resource: &commonv1beta1.Resource{
-				Urn:  fmt.Sprintf("%s.%s", dbName, tableName),
-				Name: tableName,
-				Type: "table",
+				Urn:     models.NewURN("clickhouse", e.UrnScope, "table", fmt.Sprintf("%s.%s", dbName, tableName)),
+				Name:    tableName,
+				Service: "clickhouse",
+				Type:    "table",
 			}, Schema: &facetsv1beta1.Columns{
 				Columns: columns,
 			},

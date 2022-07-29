@@ -8,6 +8,7 @@ import (
 
 	"github.com/odpf/meteor/models"
 	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
+	"github.com/odpf/meteor/plugins"
 	"github.com/pkg/errors"
 )
 
@@ -117,15 +118,14 @@ func (dbs *DatabaseServer) CreateResource(tableInfo Table) (resource *commonv1be
 		fullNameSplitted, err := parseBQTableFullName(tableInfo.FullName)
 		if err != nil {
 			// assume fullNameSplitted[0] is the project ID
-			urn = models.TableURN(source, fullNameSplitted[0], tableInfo.Schema, tableInfo.Name)
+			urn = plugins.BigQueryURN(fullNameSplitted[0], tableInfo.Schema, tableInfo.Name)
 			break
 		}
-		urn = models.TableURN(source, fullNameSplitted[0], fullNameSplitted[1], fullNameSplitted[2])
+		urn = plugins.BigQueryURN(fullNameSplitted[0], fullNameSplitted[1], fullNameSplitted[2])
 	default:
 		// postgres::postgres:5432/postgres/user
 		host := fmt.Sprintf("%s:%d", dbs.HostName, dbs.Port)
-		urn = models.TableURN(source, host, dbs.Name, tableInfo.Name)
-
+		urn = models.NewURN(source, host, "table", fmt.Sprintf("%s.%s", dbs.Name, tableInfo.Name))
 	}
 	resource = &commonv1beta1.Resource{
 		Urn:     urn,
@@ -148,7 +148,7 @@ type CloudFile struct {
 
 func (cf *CloudFile) CreateResource(tableInfo Table) (resource *commonv1beta1.Resource) {
 	source := mapConnectionTypeToSource(cf.ConnectionType)
-	urn := fmt.Sprintf("%s::%s/%s/%s", source, cf.Provider, cf.Name, tableInfo.Name)
+	urn := models.NewURN(source, cf.Provider, "bucket", fmt.Sprintf("%s/%s", cf.Name, tableInfo.Name))
 	resource = &commonv1beta1.Resource{
 		Urn:     urn,
 		Type:    "bucket", // TODO need to check what would be the appropriate type for this
@@ -167,7 +167,7 @@ type File struct {
 
 func (f *File) CreateResource(tableInfo Table) (resource *commonv1beta1.Resource) {
 	source := mapConnectionTypeToSource(f.ConnectionType)
-	urn := fmt.Sprintf("%s::%s/%s/%s", source, f.FilePath, f.Name, tableInfo.Name)
+	urn := models.NewURN(source, f.FilePath, "bucket", fmt.Sprintf("%s.%s", f.Name, tableInfo.Name))
 	resource = &commonv1beta1.Resource{
 		Urn:     urn,
 		Type:    "bucket", // TODO need to check what would be the appropriate type for this
@@ -186,7 +186,7 @@ type WebDataConnector struct {
 
 func (wdc *WebDataConnector) CreateResource(tableInfo Table) (resource *commonv1beta1.Resource) {
 	source := mapConnectionTypeToSource(wdc.ConnectionType)
-	urn := fmt.Sprintf("%s::%s/%s/%s", source, wdc.ConnectorURL, wdc.Name, tableInfo.Name)
+	urn := models.NewURN(source, wdc.ConnectorURL, "table", fmt.Sprintf("%s.%s", wdc.Name, tableInfo.Name))
 	resource = &commonv1beta1.Resource{
 		Urn:     urn,
 		Type:    "table", // TODO need to check what would be the appropriate type for this

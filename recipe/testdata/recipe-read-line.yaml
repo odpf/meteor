@@ -2,6 +2,7 @@ name: recipe-read-line
 version: v1beta1
 source:
   name: srcA
+  scope: my-scope
   config:
     srcKey1: srcVal1
     srcKey2: srcVal2

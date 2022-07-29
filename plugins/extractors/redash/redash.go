@@ -6,10 +6,11 @@ import (
 	_ "embed" // used to print the embedded assets
 	"encoding/json"
 	"fmt"
-	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
 	"io/ioutil"
 	"net/http"
 	"time"
+
+	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
 
 	"github.com/odpf/meteor/models"
 	commonv1beta1 "github.com/odpf/meteor/models/odpf/assets/common/v1beta1"
@@ -36,8 +37,16 @@ base_url: https://redash.example.com
 api_key: t33I8i8OFnVt3t9Bjj2RXr8nCBz0xyzVZ318Zwbj
 `
 
+var info = plugins.Info{
+	Description:  "Dashboard list from Redash server.",
+	SampleConfig: sampleConfig,
+	Summary:      summary,
+	Tags:         []string{"oss", "extractor"},
+}
+
 // Extractor manages the extraction of data from the redash server
 type Extractor struct {
+	plugins.BaseExtractor
 	config Config
 	logger log.Logger
 	client *http.Client
@@ -45,31 +54,18 @@ type Extractor struct {
 
 // New returns a pointer to an initialized Extractor Object
 func New(logger log.Logger) *Extractor {
-	return &Extractor{
+	e := &Extractor{
 		logger: logger,
 	}
-}
+	e.BaseExtractor = plugins.NewBaseExtractor(info, &e.config)
 
-// Info returns the brief information of the extractor
-func (e *Extractor) Info() plugins.Info {
-	return plugins.Info{
-		Description:  "Dashboard list from Redash server.",
-		SampleConfig: sampleConfig,
-		Summary:      summary,
-		Tags:         []string{"oss", "extractor"},
-	}
-}
-
-// Validate validates the configuration of the extractor
-func (e *Extractor) Validate(configMap map[string]interface{}) (err error) {
-	return utils.BuildConfig(configMap, &Config{})
+	return e
 }
 
 // Init initializes the extractor
-func (e *Extractor) Init(_ context.Context, configMap map[string]interface{}) (err error) {
-	// build and validate config
-	if err = utils.BuildConfig(configMap, &e.config); err != nil {
-		return plugins.InvalidConfigError{}
+func (e *Extractor) Init(ctx context.Context, config plugins.Config) (err error) {
+	if err = e.BaseExtractor.Init(ctx, config); err != nil {
+		return err
 	}
 	e.client = &http.Client{
 		Timeout: 4 * time.Second,
@@ -98,7 +94,7 @@ func (e *Extractor) Extract(_ context.Context, emit plugins.Emit) (err error) {
 
 // buildDashboard builds a dashboard from redash server
 func (e *Extractor) buildDashboard(dashboard Results) (data *assetsv1beta1.Dashboard, err error) {
-	dashboardUrn := models.DashboardURN("redash", e.config.BaseURL, fmt.Sprintf("dashboard/%d", dashboard.Id))
+	dashboardUrn := models.NewURN("redash", e.UrnScope, "dashboard", fmt.Sprintf("%d", dashboard.Id))
 
 	data = &assetsv1beta1.Dashboard{
 		Resource: &commonv1beta1.Resource{

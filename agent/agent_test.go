@@ -86,7 +86,7 @@ func TestAgentRun(t *testing.T) {
 
 	t.Run("should return error if processor could not be found", func(t *testing.T) {
 		extr := mocks.NewExtractor()
-		extr.On("Init", mockCtx, validRecipe.Source.Config).Return(nil).Once()
+		extr.On("Init", mockCtx, buildPluginConfig(validRecipe.Source)).Return(nil).Once()
 		defer extr.AssertExpectations(t)
 		ef := registry.NewExtractorFactory()
 		if err := ef.Register("test-extractor", newExtractor(extr)); err != nil {
@@ -117,7 +117,7 @@ func TestAgentRun(t *testing.T) {
 
 	t.Run("should return error if sink could not be found", func(t *testing.T) {
 		extr := mocks.NewExtractor()
-		extr.On("Init", mockCtx, validRecipe.Source.Config).Return(nil).Once()
+		extr.On("Init", mockCtx, buildPluginConfig(validRecipe.Source)).Return(nil).Once()
 		defer extr.AssertExpectations(t)
 		ef := registry.NewExtractorFactory()
 		if err := ef.Register("test-extractor", newExtractor(extr)); err != nil {
@@ -125,7 +125,7 @@ func TestAgentRun(t *testing.T) {
 		}
 
 		proc := mocks.NewProcessor()
-		proc.On("Init", mockCtx, validRecipe.Processors[0].Config).Return(nil).Once()
+		proc.On("Init", mockCtx, buildPluginConfig(validRecipe.Processors[0])).Return(nil).Once()
 		defer proc.AssertExpectations(t)
 		pf := registry.NewProcessorFactory()
 		if err := pf.Register("test-processor", newProcessor(proc)); err != nil {
@@ -150,7 +150,7 @@ func TestAgentRun(t *testing.T) {
 
 	t.Run("should return error when initiating extractor fails", func(t *testing.T) {
 		extr := mocks.NewExtractor()
-		extr.On("Init", mockCtx, validRecipe.Source.Config).Return(errors.New("some error")).Once()
+		extr.On("Init", mockCtx, buildPluginConfig(validRecipe.Source)).Return(errors.New("some error")).Once()
 		defer extr.AssertExpectations(t)
 		ef := registry.NewExtractorFactory()
 		if err := ef.Register("test-extractor", newExtractor(extr)); err != nil {
@@ -187,7 +187,7 @@ func TestAgentRun(t *testing.T) {
 
 	t.Run("should return error when initiating processor fails", func(t *testing.T) {
 		extr := mocks.NewExtractor()
-		extr.On("Init", mockCtx, validRecipe.Source.Config).Return(nil).Once()
+		extr.On("Init", mockCtx, buildPluginConfig(validRecipe.Source)).Return(nil).Once()
 		defer extr.AssertExpectations(t)
 		ef := registry.NewExtractorFactory()
 		if err := ef.Register("test-extractor", newExtractor(extr)); err != nil {
@@ -195,7 +195,7 @@ func TestAgentRun(t *testing.T) {
 		}
 
 		proc := mocks.NewProcessor()
-		proc.On("Init", mockCtx, validRecipe.Processors[0].Config).Return(errors.New("some error")).Once()
+		proc.On("Init", mockCtx, buildPluginConfig(validRecipe.Processors[0])).Return(errors.New("some error")).Once()
 		defer proc.AssertExpectations(t)
 		pf := registry.NewProcessorFactory()
 		if err := pf.Register("test-processor", newProcessor(proc)); err != nil {
@@ -226,7 +226,7 @@ func TestAgentRun(t *testing.T) {
 
 	t.Run("should return error when initiating sink fails", func(t *testing.T) {
 		extr := mocks.NewExtractor()
-		extr.On("Init", mockCtx, validRecipe.Source.Config).Return(nil).Once()
+		extr.On("Init", mockCtx, buildPluginConfig(validRecipe.Source)).Return(nil).Once()
 		defer extr.AssertExpectations(t)
 		ef := registry.NewExtractorFactory()
 		if err := ef.Register("test-extractor", newExtractor(extr)); err != nil {
@@ -234,7 +234,7 @@ func TestAgentRun(t *testing.T) {
 		}
 
 		proc := mocks.NewProcessor()
-		proc.On("Init", mockCtx, validRecipe.Processors[0].Config).Return(nil).Once()
+		proc.On("Init", mockCtx, buildPluginConfig(validRecipe.Processors[0])).Return(nil).Once()
 		defer proc.AssertExpectations(t)
 		pf := registry.NewProcessorFactory()
 		if err := pf.Register("test-processor", newProcessor(proc)); err != nil {
@@ -242,7 +242,7 @@ func TestAgentRun(t *testing.T) {
 		}
 
 		sink := mocks.NewSink()
-		sink.On("Init", mockCtx, validRecipe.Sinks[0].Config).Return(errors.New("some error")).Once()
+		sink.On("Init", mockCtx, buildPluginConfig(validRecipe.Sinks[0])).Return(errors.New("some error")).Once()
 		defer sink.AssertExpectations(t)
 		sf := registry.NewSinkFactory()
 		if err := sf.Register("test-sink", newSink(sink)); err != nil {
@@ -267,7 +267,7 @@ func TestAgentRun(t *testing.T) {
 
 	t.Run("should return error when extracting fails", func(t *testing.T) {
 		extr := mocks.NewExtractor()
-		extr.On("Init", mockCtx, validRecipe.Source.Config).Return(nil).Once()
+		extr.On("Init", mockCtx, buildPluginConfig(validRecipe.Source)).Return(nil).Once()
 		extr.On("Extract", mockCtx, mock.AnythingOfType("plugins.Emit")).Return(errors.New("some error")).Once()
 		ef := registry.NewExtractorFactory()
 		if err := ef.Register("test-extractor", newExtractor(extr)); err != nil {
@@ -275,7 +275,7 @@ func TestAgentRun(t *testing.T) {
 		}
 
 		proc := mocks.NewProcessor()
-		proc.On("Init", mockCtx, validRecipe.Processors[0].Config).Return(nil).Once()
+		proc.On("Init", mockCtx, buildPluginConfig(validRecipe.Processors[0])).Return(nil).Once()
 		defer proc.AssertExpectations(t)
 		pf := registry.NewProcessorFactory()
 		if err := pf.Register("test-processor", newProcessor(proc)); err != nil {
@@ -283,7 +283,7 @@ func TestAgentRun(t *testing.T) {
 		}
 
 		sink := mocks.NewSink()
-		sink.On("Init", mockCtx, validRecipe.Sinks[0].Config).Return(nil).Once()
+		sink.On("Init", mockCtx, buildPluginConfig(validRecipe.Sinks[0])).Return(nil).Once()
 		sink.On("Close").Return(nil)
 		defer sink.AssertExpectations(t)
 		sf := registry.NewSinkFactory()
@@ -309,14 +309,14 @@ func TestAgentRun(t *testing.T) {
 
 	t.Run("should return error when extractor panicing", func(t *testing.T) {
 		extr := new(panicExtractor)
-		extr.On("Init", mockCtx, validRecipe.Source.Config).Return(nil).Once()
+		extr.On("Init", mockCtx, buildPluginConfig(validRecipe.Source)).Return(nil).Once()
 		ef := registry.NewExtractorFactory()
 		if err := ef.Register("test-extractor", newExtractor(extr)); err != nil {
 			t.Fatal(err)
 		}
 
 		proc := mocks.NewProcessor()
-		proc.On("Init", mockCtx, validRecipe.Processors[0].Config).Return(nil).Once()
+		proc.On("Init", mockCtx, buildPluginConfig(validRecipe.Processors[0])).Return(nil).Once()
 		defer proc.AssertExpectations(t)
 		pf := registry.NewProcessorFactory()
 		if err := pf.Register("test-processor", newProcessor(proc)); err != nil {
@@ -324,7 +324,7 @@ func TestAgentRun(t *testing.T) {
 		}
 
 		sink := mocks.NewSink()
-		sink.On("Init", mockCtx, validRecipe.Sinks[0].Config).Return(nil).Once()
+		sink.On("Init", mockCtx, buildPluginConfig(validRecipe.Sinks[0])).Return(nil).Once()
 		sink.On("Close").Return(nil)
 		defer sink.AssertExpectations(t)
 		sf := registry.NewSinkFactory()
@@ -357,7 +357,7 @@ func TestAgentRun(t *testing.T) {
 
 		extr := mocks.NewExtractor()
 		extr.SetEmit(data)
-		extr.On("Init", mockCtx, validRecipe.Source.Config).Return(nil).Once()
+		extr.On("Init", mockCtx, buildPluginConfig(validRecipe.Source)).Return(nil).Once()
 		extr.On("Extract", mockCtx, mock.AnythingOfType("plugins.Emit")).Return(nil).Once()
 		ef := registry.NewExtractorFactory()
 		if err := ef.Register("test-extractor", newExtractor(extr)); err != nil {
@@ -365,7 +365,7 @@ func TestAgentRun(t *testing.T) {
 		}
 
 		proc := mocks.NewProcessor()
-		proc.On("Init", mockCtx, validRecipe.Processors[0].Config).Return(nil).Once()
+		proc.On("Init", mockCtx, buildPluginConfig(validRecipe.Processors[0])).Return(nil).Once()
 		proc.On("Process", mockCtx, data[0]).Return(data[0], errors.New("some error")).Once()
 		defer proc.AssertExpectations(t)
 		pf := registry.NewProcessorFactory()
@@ -374,7 +374,7 @@ func TestAgentRun(t *testing.T) {
 		}
 
 		sink := mocks.NewSink()
-		sink.On("Init", mockCtx, validRecipe.Sinks[0].Config).Return(nil).Once()
+		sink.On("Init", mockCtx, buildPluginConfig(validRecipe.Sinks[0])).Return(nil).Once()
 		sink.On("Close").Return(nil)
 		defer sink.AssertExpectations(t)
 		sf := registry.NewSinkFactory()
@@ -407,7 +407,7 @@ func TestAgentRun(t *testing.T) {
 
 		extr := mocks.NewExtractor()
 		extr.SetEmit(data)
-		extr.On("Init", mockCtx, validRecipe.Source.Config).Return(nil).Once()
+		extr.On("Init", mockCtx, buildPluginConfig(validRecipe.Source)).Return(nil).Once()
 		extr.On("Extract", mockCtx, mock.AnythingOfType("plugins.Emit")).Return(nil).Once()
 		ef := registry.NewExtractorFactory()
 		if err := ef.Register("test-extractor", newExtractor(extr)); err != nil {
@@ -415,7 +415,7 @@ func TestAgentRun(t *testing.T) {
 		}
 
 		proc := new(panicProcessor)
-		proc.On("Init", mockCtx, validRecipe.Processors[0].Config).Return(nil).Once()
+		proc.On("Init", mockCtx, buildPluginConfig(validRecipe.Processors[0])).Return(nil).Once()
 		defer proc.AssertExpectations(t)
 		pf := registry.NewProcessorFactory()
 		if err := pf.Register("test-processor", newProcessor(proc)); err != nil {
@@ -423,7 +423,7 @@ func TestAgentRun(t *testing.T) {
 		}
 
 		sink := mocks.NewSink()
-		sink.On("Init", mockCtx, validRecipe.Sinks[0].Config).Return(nil).Once()
+		sink.On("Init", mockCtx, buildPluginConfig(validRecipe.Sinks[0])).Return(nil).Once()
 		sink.On("Close").Return(nil)
 		defer sink.AssertExpectations(t)
 		sf := registry.NewSinkFactory()
@@ -456,7 +456,7 @@ func TestAgentRun(t *testing.T) {
 
 		extr := mocks.NewExtractor()
 		extr.SetEmit(data)
-		extr.On("Init", mockCtx, validRecipe.Source.Config).Return(nil).Once()
+		extr.On("Init", mockCtx, buildPluginConfig(validRecipe.Source)).Return(nil).Once()
 		extr.On("Extract", mockCtx, mock.AnythingOfType("plugins.Emit")).Return(nil)
 		ef := registry.NewExtractorFactory()
 		if err := ef.Register("test-extractor", newExtractor(extr)); err != nil {
@@ -464,7 +464,7 @@ func TestAgentRun(t *testing.T) {
 		}
 
 		proc := mocks.NewProcessor()
-		proc.On("Init", mockCtx, validRecipe.Processors[0].Config).Return(nil).Once()
+		proc.On("Init", mockCtx, buildPluginConfig(validRecipe.Processors[0])).Return(nil).Once()
 		proc.On("Process", mockCtx, data[0]).Return(data[0], nil)
 		defer proc.AssertExpectations(t)
 		pf := registry.NewProcessorFactory()
@@ -473,7 +473,7 @@ func TestAgentRun(t *testing.T) {
 		}
 
 		sink := mocks.NewSink()
-		sink.On("Init", mockCtx, validRecipe.Sinks[0].Config).Return(nil).Once()
+		sink.On("Init", mockCtx, buildPluginConfig(validRecipe.Sinks[0])).Return(nil).Once()
 		sink.On("Sink", mockCtx, data).Return(errors.New("some error"))
 		sink.On("Close").Return(nil)
 		defer sink.AssertExpectations(t)
@@ -508,7 +508,7 @@ func TestAgentRun(t *testing.T) {
 
 		extr := mocks.NewExtractor()
 		extr.SetEmit(data)
-		extr.On("Init", mockCtx, validRecipe.Source.Config).Return(nil).Once()
+		extr.On("Init", mockCtx, buildPluginConfig(validRecipe.Source)).Return(nil).Once()
 		extr.On("Extract", mockCtx, mock.AnythingOfType("plugins.Emit")).Return(nil)
 		ef := registry.NewExtractorFactory()
 		if err := ef.Register("test-extractor", newExtractor(extr)); err != nil {
@@ -516,7 +516,7 @@ func TestAgentRun(t *testing.T) {
 		}
 
 		proc := mocks.NewProcessor()
-		proc.On("Init", mockCtx, validRecipe.Processors[0].Config).Return(nil).Once()
+		proc.On("Init", mockCtx, buildPluginConfig(validRecipe.Processors[0])).Return(nil).Once()
 		proc.On("Process", mockCtx, data[0]).Return(data[0], nil)
 		defer proc.AssertExpectations(t)
 		pf := registry.NewProcessorFactory()
@@ -525,7 +525,7 @@ func TestAgentRun(t *testing.T) {
 		}
 
 		sink := mocks.NewSink()
-		sink.On("Init", mockCtx, validRecipe.Sinks[0].Config).Return(nil).Once()
+		sink.On("Init", mockCtx, buildPluginConfig(validRecipe.Sinks[0])).Return(nil).Once()
 		sink.On("Sink", mockCtx, data).Return(errors.New("some error"))
 		sink.On("Close").Return(nil)
 		defer sink.AssertExpectations(t)
@@ -561,7 +561,7 @@ func TestAgentRun(t *testing.T) {
 
 		extr := mocks.NewExtractor()
 		extr.SetEmit(data)
-		extr.On("Init", mockCtx, validRecipe.Source.Config).Return(nil).Once()
+		extr.On("Init", mockCtx, buildPluginConfig(validRecipe.Source)).Return(nil).Once()
 		extr.On("Extract", mockCtx, mock.AnythingOfType("plugins.Emit")).Return(nil)
 		ef := registry.NewExtractorFactory()
 		if err := ef.Register("test-extractor", newExtractor(extr)); err != nil {
@@ -569,7 +569,7 @@ func TestAgentRun(t *testing.T) {
 		}
 
 		proc := mocks.NewProcessor()
-		proc.On("Init", mockCtx, validRecipe.Processors[0].Config).Return(nil).Once()
+		proc.On("Init", mockCtx, buildPluginConfig(validRecipe.Processors[0])).Return(nil).Once()
 		proc.On("Process", mockCtx, data[0]).Return(data[0], nil)
 		defer proc.AssertExpectations(t)
 		pf := registry.NewProcessorFactory()
@@ -578,7 +578,7 @@ func TestAgentRun(t *testing.T) {
 		}
 
 		sink := mocks.NewSink()
-		sink.On("Init", mockCtx, validRecipe.Sinks[0].Config).Return(nil).Once()
+		sink.On("Init", mockCtx, buildPluginConfig(validRecipe.Sinks[0])).Return(nil).Once()
 		sink.On("Sink", mockCtx, data).Return(nil)
 		sink.On("Close").Return(nil)
 		defer sink.AssertExpectations(t)
@@ -619,7 +619,7 @@ func TestAgentRun(t *testing.T) {
 
 		extr := mocks.NewExtractor()
 		extr.SetEmit(data)
-		extr.On("Init", mockCtx, validRecipe.Source.Config).Return(nil).Once()
+		extr.On("Init", mockCtx, buildPluginConfig(validRecipe.Source)).Return(nil).Once()
 		extr.On("Extract", mockCtx, mock.AnythingOfType("plugins.Emit")).Return(nil)
 		ef := registry.NewExtractorFactory()
 		if err := ef.Register("test-extractor", newExtractor(extr)); err != nil {
@@ -627,7 +627,7 @@ func TestAgentRun(t *testing.T) {
 		}
 
 		proc := mocks.NewProcessor()
-		proc.On("Init", mockCtx, validRecipe.Processors[0].Config).Return(nil).Once()
+		proc.On("Init", mockCtx, buildPluginConfig(validRecipe.Processors[0])).Return(nil).Once()
 		proc.On("Process", mockCtx, data[0]).Return(data[0], nil)
 		defer proc.AssertExpectations(t)
 		pf := registry.NewProcessorFactory()
@@ -636,7 +636,7 @@ func TestAgentRun(t *testing.T) {
 		}
 
 		sink := mocks.NewSink()
-		sink.On("Init", mockCtx, validRecipe.Sinks[0].Config).Return(nil).Once()
+		sink.On("Init", mockCtx, buildPluginConfig(validRecipe.Sinks[0])).Return(nil).Once()
 		sink.On("Sink", mockCtx, data).Return(nil)
 		sink.On("Close").Return(nil)
 		defer sink.AssertExpectations(t)
@@ -674,7 +674,7 @@ func TestAgentRun(t *testing.T) {
 
 		extr := mocks.NewExtractor()
 		extr.SetEmit(data)
-		extr.On("Init", mockCtx, validRecipe.Source.Config).Return(nil).Once()
+		extr.On("Init", mockCtx, buildPluginConfig(validRecipe.Source)).Return(nil).Once()
 		extr.On("Extract", mockCtx, mock.AnythingOfType("plugins.Emit")).Return(nil)
 		ef := registry.NewExtractorFactory()
 		if err := ef.Register("test-extractor", newExtractor(extr)); err != nil {
@@ -682,7 +682,7 @@ func TestAgentRun(t *testing.T) {
 		}
 
 		proc := mocks.NewProcessor()
-		proc.On("Init", mockCtx, validRecipe.Processors[0].Config).Return(nil).Once()
+		proc.On("Init", mockCtx, buildPluginConfig(validRecipe.Processors[0])).Return(nil).Once()
 		proc.On("Process", mockCtx, data[0]).Return(data[0], nil)
 		defer proc.AssertExpectations(t)
 		pf := registry.NewProcessorFactory()
@@ -691,7 +691,7 @@ func TestAgentRun(t *testing.T) {
 		}
 
 		sink := mocks.NewSink()
-		sink.On("Init", mockCtx, validRecipe.Sinks[0].Config).Return(nil).Once()
+		sink.On("Init", mockCtx, buildPluginConfig(validRecipe.Sinks[0])).Return(nil).Once()
 		sink.On("Sink", mockCtx, data).Return(plugins.NewRetryError(err)).Once()
 		sink.On("Sink", mockCtx, data).Return(nil)
 		sink.On("Close").Return(nil)
@@ -733,7 +733,7 @@ func TestAgentRunMultiple(t *testing.T) {
 		}
 		extr := mocks.NewExtractor()
 		extr.SetEmit(data)
-		extr.On("Init", mockCtx, validRecipe.Source.Config).Return(nil)
+		extr.On("Init", mockCtx, buildPluginConfig(validRecipe.Source)).Return(nil)
 		extr.On("Extract", mockCtx, mock.AnythingOfType("plugins.Emit")).Return(nil)
 		ef := registry.NewExtractorFactory()
 		if err := ef.Register("test-extractor", newExtractor(extr)); err != nil {
@@ -741,7 +741,7 @@ func TestAgentRunMultiple(t *testing.T) {
 		}
 
 		proc := mocks.NewProcessor()
-		proc.On("Init", mockCtx, validRecipe.Processors[0].Config).Return(nil)
+		proc.On("Init", mockCtx, buildPluginConfig(validRecipe.Processors[0])).Return(nil)
 		proc.On("Process", mockCtx, data[0]).Return(data[0], nil)
 		defer proc.AssertExpectations(t)
 		pf := registry.NewProcessorFactory()
@@ -750,7 +750,7 @@ func TestAgentRunMultiple(t *testing.T) {
 		}
 
 		sink := mocks.NewSink()
-		sink.On("Init", mockCtx, validRecipe.Sinks[0].Config).Return(nil)
+		sink.On("Init", mockCtx, buildPluginConfig(validRecipe.Sinks[0])).Return(nil)
 		sink.On("Sink", mockCtx, data).Return(nil)
 		sink.On("Close").Return(nil)
 		defer sink.AssertExpectations(t)
@@ -826,14 +826,14 @@ func TestValidate(t *testing.T) {
 
 		extr := mocks.NewExtractor()
 		err := plugins.InvalidConfigError{}
-		extr.On("Validate", invalidRecipe.Source.Config).Return(err).Once()
+		extr.On("Validate", buildPluginConfig(invalidRecipe.Source)).Return(err).Once()
 		ef := registry.NewExtractorFactory()
 		if err := ef.Register("test-extractor", newExtractor(extr)); err != nil {
 			t.Fatal(err)
 		}
 
 		proc := mocks.NewProcessor()
-		proc.On("Validate", invalidRecipe.Processors[0].Config).Return(err).Once()
+		proc.On("Validate", buildPluginConfig(invalidRecipe.Processors[0])).Return(err).Once()
 		defer proc.AssertExpectations(t)
 		pf := registry.NewProcessorFactory()
 		if err := pf.Register("test-processor", newProcessor(proc)); err != nil {
@@ -841,7 +841,7 @@ func TestValidate(t *testing.T) {
 		}
 
 		sink := mocks.NewSink()
-		sink.On("Validate", invalidRecipe.Sinks[0].Config).Return(err).Once()
+		sink.On("Validate", buildPluginConfig(invalidRecipe.Sinks[0])).Return(err).Once()
 		defer sink.AssertExpectations(t)
 		sf := registry.NewSinkFactory()
 		if err := sf.Register("test-sink", newSink(sink)); err != nil {
@@ -927,4 +927,8 @@ func enrichInvalidConfigError(err error, pluginName string, pluginType plugins.P
 	}
 
 	return err
+}
+
+func buildPluginConfig(pr recipe.PluginRecipe) plugins.Config {
+	return plugins.Config{RawConfig: pr.Config, URNScope: pr.Scope}
 }

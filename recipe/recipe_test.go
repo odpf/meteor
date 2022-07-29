@@ -10,7 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-var testLog = log.NewLogrus(log.LogrusWithLevel("info"))
+var testLog = log.NewNoop()
 
 // TestRecipeGetLine tests recipe by line number
 func TestRecipeGetLine(t *testing.T) {
@@ -26,7 +26,7 @@ func TestRecipeGetLine(t *testing.T) {
 	})
 
 	t.Run("should return config source lines", func(t *testing.T) {
-		expectedLineNum := []int{6, 7, 8}
+		expectedLineNum := []int{7, 8, 9}
 		var lineNum []int
 		srcConfig := rcp.Source.Node.Config
 		for _, j := range srcConfig {
@@ -37,24 +37,24 @@ func TestRecipeGetLine(t *testing.T) {
 	})
 
 	t.Run("should return config source line for a specific config key", func(t *testing.T) {
-		expectedLineNum := 7
+		expectedLineNum := 8
 		srcConfigKey := rcp.Source.Node.Config["srcKey2"]
 		assert.Equal(t, expectedLineNum, srcConfigKey.Line)
 	})
 
 	t.Run("should return processors line and column", func(t *testing.T) {
-		assert.Equal(t, 10, rcp.Processors[0].Node.Name.Line)
+		assert.Equal(t, 11, rcp.Processors[0].Node.Name.Line)
 		assert.Equal(t, 11, rcp.Processors[0].Node.Name.Column)
 
-		assert.Equal(t, 15, rcp.Processors[1].Node.Name.Line)
+		assert.Equal(t, 16, rcp.Processors[1].Node.Name.Line)
 		assert.Equal(t, 11, rcp.Processors[1].Node.Name.Column)
 	})
 
 	t.Run("should return sinks line and column", func(t *testing.T) {
-		assert.Equal(t, 21, rcp.Sinks[0].Node.Name.Line)
+		assert.Equal(t, 22, rcp.Sinks[0].Node.Name.Line)
 		assert.Equal(t, 11, rcp.Sinks[0].Node.Name.Column)
 
-		assert.Equal(t, 26, rcp.Sinks[1].Node.Name.Line)
+		assert.Equal(t, 27, rcp.Sinks[1].Node.Name.Line)
 		assert.Equal(t, 11, rcp.Sinks[1].Node.Name.Column)
 	})
 }
@@ -62,7 +62,7 @@ func TestRecipeGetLine(t *testing.T) {
 // TestRecipeGetLineBySrcTypeTag tests recipe source with tag `type` by line number
 func TestRecipeGetLineBySrcTypeTag(t *testing.T) {
 	reader := recipe.NewReader(testLog, "")
-	r, err := reader.Read("./testdata/src- typeTag-recipe-read-line.yaml")
+	r, err := reader.Read("./testdata/src-typeTag-recipe-read-line.yaml")
 	require.NoError(t, err)
 	require.Len(t, r, 1)
 	rcp := r[0]
@@ -73,7 +73,7 @@ func TestRecipeGetLineBySrcTypeTag(t *testing.T) {
 	})
 
 	t.Run("should return config source lines", func(t *testing.T) {
-		expectedLineNum := []int{6, 7, 8}
+		expectedLineNum := []int{7, 8, 9}
 		var lineNum []int
 		srcConfig := rcp.Source.Node.Config
 		for _, j := range srcConfig {
@@ -84,7 +84,7 @@ func TestRecipeGetLineBySrcTypeTag(t *testing.T) {
 	})
 
 	t.Run("should return config source line for a specific config key", func(t *testing.T) {
-		expectedLineNum := 7
+		expectedLineNum := 8
 		srcConfigKey := rcp.Source.Node.Config["srcKey2"]
 		assert.Equal(t, expectedLineNum, srcConfigKey.Line)
 	})

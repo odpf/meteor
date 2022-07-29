@@ -14,6 +14,7 @@ type Recipe struct {
 // generating the plugins code for a recipe.
 type PluginRecipe struct {
 	Name   string                 `json:"name" yaml:"name" validate:"required"`
+	Scope  string                 `json:"scope" yaml:"scope"`
 	Config map[string]interface{} `json:"config" yaml:"config"`
 	Node   PluginNode
 }

@@ -13,7 +13,6 @@ import (
 	"github.com/odpf/meteor/models"
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
-	"github.com/odpf/meteor/utils"
 	"github.com/odpf/salt/log"
 	"github.com/pkg/errors"
 )
@@ -28,46 +27,45 @@ type Config struct {
 	SuccessCode int               `mapstructure:"success_code" default:"200"`
 }
 
-var sampleConfig = `
-# The url (hostname and route) of the http service
-url: https://compass.com/route
-# Additional HTTP headers, multiple headers value are separated by a comma
-headers:
-	X-Other-Header: value1, value2
-`
+var info = plugins.Info{
+	Description: "Send metadata to http service",
+	Summary:     summary,
+	Tags:        []string{"http", "sink"},
+	SampleConfig: `
+	# The url (hostname and route) of the http service
+	url: https://compass.com/route
+	# Additional HTTP headers, multiple headers value are separated by a comma
+	headers:
+		X-Other-Header: value1, value2
+	`,
+}
 
 type httpClient interface {
 	Do(*http.Request) (*http.Response, error)
 }
 
 type Sink struct {
+	plugins.BasePlugin
 	client httpClient
 	config Config
 	logger log.Logger
 }
 
 func New(c httpClient, logger log.Logger) plugins.Syncer {
-	sink := &Sink{client: c, logger: logger}
-	return sink
-}
-
-func (s *Sink) Info() plugins.Info {
-	return plugins.Info{
-		Description:  "Send metadata to http service",
-		SampleConfig: sampleConfig,
-		Summary:      summary,
-		Tags:         []string{"http", "sink"},
+	s := &Sink{
+		logger: logger,
+		client: c,
 	}
+	s.BasePlugin = plugins.NewBasePlugin(info, &s.config)
+
+	return s
 }
 
-func (s *Sink) Validate(configMap map[string]interface{}) (err error) {
-	return utils.BuildConfig(configMap, &s.config)
-}
-
-func (s *Sink) Init(ctx context.Context, configMap map[string]interface{}) (err error) {
-	if err = s.Validate(configMap); err != nil {
-		return plugins.InvalidConfigError{Type: plugins.PluginTypeSink, PluginName: "http"}
+func (s *Sink) Init(ctx context.Context, config plugins.Config) (err error) {
+	if err = s.BasePlugin.Init(ctx, config); err != nil {
+		return err
 	}
+
 	return
 }
 

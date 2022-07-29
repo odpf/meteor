@@ -1,6 +1,7 @@
 name: test-recipe
 source:
   name: test-source
+  scope: my-scope
   config:
     foo: bar
 sinks:

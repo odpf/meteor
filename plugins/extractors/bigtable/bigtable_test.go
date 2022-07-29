@@ -14,20 +14,28 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	urnScope = "test-bigtable"
+)
+
 func TestInit(t *testing.T) {
 	t.Run("should return error if no project_id in config", func(t *testing.T) {
-		err := bt.New(utils.Logger).Init(context.TODO(), map[string]interface{}{
-			"wrong-config": "sample-project",
-		})
+		err := bt.New(utils.Logger).Init(context.TODO(), plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"wrong-config": "sample-project",
+			}})
 
-		assert.Equal(t, plugins.InvalidConfigError{}, err)
+		assert.ErrorAs(t, err, &plugins.InvalidConfigError{})
 	})
 
 	t.Run("should return error if project_id is empty", func(t *testing.T) {
-		err := bt.New(utils.Logger).Init(context.TODO(), map[string]interface{}{
-			"project_id": "",
-		})
+		err := bt.New(utils.Logger).Init(context.TODO(), plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"project_id": "",
+			}})
 
-		assert.Equal(t, plugins.InvalidConfigError{}, err)
+		assert.ErrorAs(t, err, &plugins.InvalidConfigError{})
 	})
 }

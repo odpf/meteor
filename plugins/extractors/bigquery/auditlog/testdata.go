@@ -1,29 +1,29 @@
 package auditlog
 
 import (
-	"github.com/odpf/meteor/models"
+	"github.com/odpf/meteor/plugins/extractors/bigquery/util"
 	loggingpb "google.golang.org/genproto/googleapis/cloud/bigquery/logging/v1"
 )
 
 var testDataRefTables1 = []string{
-	models.TableURN("bigquery", "project1", "dataset1", "table1"),
-	models.TableURN("bigquery", "project2", "dataset1", "table1"),
-	models.TableURN("bigquery", "project3", "dataset1", "table1"),
+	util.TableURN("project1", "dataset1", "table1"),
+	util.TableURN("project2", "dataset1", "table1"),
+	util.TableURN("project3", "dataset1", "table1"),
 }
 
 var testDataRefTables2 = []string{
-	models.TableURN("bigquery", "project1", "dataset1", "table1"),
-	models.TableURN("bigquery", "project3", "dataset1", "table1"),
-	models.TableURN("bigquery", "project4", "dataset1", "table1"),
+	util.TableURN("project1", "dataset1", "table1"),
+	util.TableURN("project3", "dataset1", "table1"),
+	util.TableURN("project4", "dataset1", "table1"),
 }
 
 var testDataRefTables3 = []string{
-	models.TableURN("bigquery", "project1", "dataset1", "table1"),
-	models.TableURN("bigquery", "project3", "dataset1", "table1"),
+	util.TableURN("project1", "dataset1", "table1"),
+	util.TableURN("project3", "dataset1", "table1"),
 }
 
 var testDataRefTables4 = []string{
-	models.TableURN("bigquery", "project1", "dataset1", "table1"),
+	util.TableURN("project1", "dataset1", "table1"),
 }
 
 var testDataLogData1 = &LogData{
@@ -173,15 +173,15 @@ var testDataLogData4 = &LogData{
 }
 
 var testDataJoinDetail1234 = map[string]map[string]JoinDetail{
-	models.TableURN("bigquery", "project1", "dataset1", "table1"): {
-		models.TableURN("bigquery", "project2", "dataset1", "table1"): {
+	util.TableURN("project1", "dataset1", "table1"): {
+		util.TableURN("project2", "dataset1", "table1"): {
 			Usage: 1,
 			Conditions: map[string]bool{
 				"ON t1.somefield = t2.anotherfield":    true,
 				"ON t1.somefield = t3.yetanotherfield": true,
 			},
 		},
-		models.TableURN("bigquery", "project3", "dataset1", "table1"): {
+		util.TableURN("project3", "dataset1", "table1"): {
 			Usage: 3,
 			Conditions: map[string]bool{
 				"ON t1.somefield = t2.anotherfield":    true,
@@ -190,7 +190,7 @@ var testDataJoinDetail1234 = map[string]map[string]JoinDetail{
 			},
 		},
 
-		models.TableURN("bigquery", "project4", "dataset1", "table1"): {
+		util.TableURN("project4", "dataset1", "table1"): {
 			Usage: 1,
 			Conditions: map[string]bool{
 				"ON t1.somefield = t2.anotherfield":    true,
@@ -198,15 +198,15 @@ var testDataJoinDetail1234 = map[string]map[string]JoinDetail{
 			},
 		},
 	},
-	models.TableURN("bigquery", "project2", "dataset1", "table1"): {
-		models.TableURN("bigquery", "project1", "dataset1", "table1"): {
+	util.TableURN("project2", "dataset1", "table1"): {
+		util.TableURN("project1", "dataset1", "table1"): {
 			Usage: 1,
 			Conditions: map[string]bool{
 				"ON t1.somefield = t2.anotherfield":    true,
 				"ON t1.somefield = t3.yetanotherfield": true,
 			},
 		},
-		models.TableURN("bigquery", "project3", "dataset1", "table1"): {
+		util.TableURN("project3", "dataset1", "table1"): {
 			Usage: 1,
 			Conditions: map[string]bool{
 				"ON t1.somefield = t2.anotherfield":    true,
@@ -214,8 +214,8 @@ var testDataJoinDetail1234 = map[string]map[string]JoinDetail{
 			},
 		},
 	},
-	models.TableURN("bigquery", "project3", "dataset1", "table1"): {
-		models.TableURN("bigquery", "project1", "dataset1", "table1"): {
+	util.TableURN("project3", "dataset1", "table1"): {
+		util.TableURN("project1", "dataset1", "table1"): {
 			Usage: 3,
 			Conditions: map[string]bool{
 				"ON t1.somefield = t2.anotherfield":    true,
@@ -223,14 +223,14 @@ var testDataJoinDetail1234 = map[string]map[string]JoinDetail{
 				"USING (somefield,anotherfield)":       true,
 			},
 		},
-		models.TableURN("bigquery", "project2", "dataset1", "table1"): {
+		util.TableURN("project2", "dataset1", "table1"): {
 			Usage: 1,
 			Conditions: map[string]bool{
 				"ON t1.somefield = t2.anotherfield":    true,
 				"ON t1.somefield = t3.yetanotherfield": true,
 			},
 		},
-		models.TableURN("bigquery", "project4", "dataset1", "table1"): {
+		util.TableURN("project4", "dataset1", "table1"): {
 			Usage: 1,
 			Conditions: map[string]bool{
 				"ON t1.somefield = t2.anotherfield":    true,
@@ -238,15 +238,15 @@ var testDataJoinDetail1234 = map[string]map[string]JoinDetail{
 			},
 		},
 	},
-	models.TableURN("bigquery", "project4", "dataset1", "table1"): {
-		models.TableURN("bigquery", "project1", "dataset1", "table1"): {
+	util.TableURN("project4", "dataset1", "table1"): {
+		util.TableURN("project1", "dataset1", "table1"): {
 			Usage: 1,
 			Conditions: map[string]bool{
 				"ON t1.somefield = t2.anotherfield":    true,
 				"ON t1.somefield = t3.yetanotherfield": true,
 			},
 		},
-		models.TableURN("bigquery", "project3", "dataset1", "table1"): {
+		util.TableURN("project3", "dataset1", "table1"): {
 			Usage: 1,
 			Conditions: map[string]bool{
 				"ON t1.somefield = t2.anotherfield":    true,
@@ -257,65 +257,65 @@ var testDataJoinDetail1234 = map[string]map[string]JoinDetail{
 }
 
 var testDataJoinUsage1234 = map[string]map[string]JoinDetail{
-	models.TableURN("bigquery", "project1", "dataset1", "table1"): {
-		models.TableURN("bigquery", "project2", "dataset1", "table1"): {
+	util.TableURN("project1", "dataset1", "table1"): {
+		util.TableURN("project2", "dataset1", "table1"): {
 			Usage: 1,
 		},
-		models.TableURN("bigquery", "project3", "dataset1", "table1"): {
+		util.TableURN("project3", "dataset1", "table1"): {
 			Usage: 3,
 		},
 
-		models.TableURN("bigquery", "project4", "dataset1", "table1"): {
+		util.TableURN("project4", "dataset1", "table1"): {
 			Usage: 1,
 		},
 	},
-	models.TableURN("bigquery", "project2", "dataset1", "table1"): {
-		models.TableURN("bigquery", "project1", "dataset1", "table1"): {
+	util.TableURN("project2", "dataset1", "table1"): {
+		util.TableURN("project1", "dataset1", "table1"): {
 			Usage: 1,
 		},
-		models.TableURN("bigquery", "project3", "dataset1", "table1"): {
+		util.TableURN("project3", "dataset1", "table1"): {
 			Usage: 1,
 		},
 	},
-	models.TableURN("bigquery", "project3", "dataset1", "table1"): {
-		models.TableURN("bigquery", "project1", "dataset1", "table1"): {
+	util.TableURN("project3", "dataset1", "table1"): {
+		util.TableURN("project1", "dataset1", "table1"): {
 			Usage: 3,
 		},
-		models.TableURN("bigquery", "project2", "dataset1", "table1"): {
+		util.TableURN("project2", "dataset1", "table1"): {
 			Usage: 1,
 		},
-		models.TableURN("bigquery", "project4", "dataset1", "table1"): {
+		util.TableURN("project4", "dataset1", "table1"): {
 			Usage: 1,
 		},
 	},
-	models.TableURN("bigquery", "project4", "dataset1", "table1"): {
-		models.TableURN("bigquery", "project1", "dataset1", "table1"): {
+	util.TableURN("project4", "dataset1", "table1"): {
+		util.TableURN("project1", "dataset1", "table1"): {
 			Usage: 1,
 		},
-		models.TableURN("bigquery", "project3", "dataset1", "table1"): {
+		util.TableURN("project3", "dataset1", "table1"): {
 			Usage: 1,
 		},
 	},
 }
 
 var testDataTableUsage1234 = map[string]int64{
-	models.TableURN("bigquery", "project1", "dataset1", "table1"): 4,
-	models.TableURN("bigquery", "project2", "dataset1", "table1"): 1,
-	models.TableURN("bigquery", "project3", "dataset1", "table1"): 3,
-	models.TableURN("bigquery", "project4", "dataset1", "table1"): 1,
+	util.TableURN("project1", "dataset1", "table1"): 4,
+	util.TableURN("project2", "dataset1", "table1"): 1,
+	util.TableURN("project3", "dataset1", "table1"): 3,
+	util.TableURN("project4", "dataset1", "table1"): 1,
 }
 
 var testDataFilterCondition1234 = map[string]map[string]bool{
-	models.TableURN("bigquery", "project1", "dataset1", "table1"): {
+	util.TableURN("project1", "dataset1", "table1"): {
 		"WHERE column_1 IS TRUE":                                 true,
 		"WHERE t1.field2 = 'valid'":                              true,
 		"where job_type=\"query\" and statement_type=\"insert\"": true,
 	},
-	models.TableURN("bigquery", "project3", "dataset1", "table1"): {
+	util.TableURN("project3", "dataset1", "table1"): {
 		"WHERE column_1 IS TRUE":    true,
 		"WHERE t1.field2 = 'valid'": true,
 	},
-	models.TableURN("bigquery", "project4", "dataset1", "table1"): {
+	util.TableURN("project4", "dataset1", "table1"): {
 		"WHERE t1.field2 = 'valid'": true,
 	},
 }

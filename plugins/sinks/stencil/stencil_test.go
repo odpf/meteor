@@ -1,3 +1,6 @@
+//go:build plugins
+// +build plugins
+
 package stencil_test
 
 import (
@@ -40,9 +43,9 @@ func TestInit(t *testing.T) {
 		for i, config := range invalidConfigs {
 			t.Run(fmt.Sprintf("test invalid config #%d", i+1), func(t *testing.T) {
 				stencilSink := stencil.New(newMockHTTPClient(config, http.MethodPost, url, stencil.JsonSchema{}), testUtils.Logger)
-				err := stencilSink.Init(context.TODO(), config)
+				err := stencilSink.Init(context.TODO(), plugins.Config{RawConfig: config})
 
-				assert.Equal(t, plugins.InvalidConfigError{Type: plugins.PluginTypeSink}, err)
+				assert.ErrorAs(t, err, &plugins.InvalidConfigError{})
 			})
 		}
 	})
@@ -60,11 +63,11 @@ func TestSink(t *testing.T) {
 		ctx := context.TODO()
 
 		stencilSink := stencil.New(client, testUtils.Logger)
-		err := stencilSink.Init(ctx, map[string]interface{}{
+		err := stencilSink.Init(ctx, plugins.Config{RawConfig: map[string]interface{}{
 			"host":         host,
 			"namespace_id": namespaceID,
 			"format":       "json",
-		})
+		}})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -83,11 +86,11 @@ func TestSink(t *testing.T) {
 				ctx := context.TODO()
 
 				stencilSink := stencil.New(client, testUtils.Logger)
-				err := stencilSink.Init(ctx, map[string]interface{}{
+				err := stencilSink.Init(ctx, plugins.Config{RawConfig: map[string]interface{}{
 					"host":         host,
 					"namespace_id": namespaceID,
 					"format":       "json",
-				})
+				}})
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -351,7 +354,7 @@ func TestSink(t *testing.T) {
 			ctx := context.TODO()
 
 			stencilSink := stencil.New(client, testUtils.Logger)
-			err := stencilSink.Init(ctx, tc.config)
+			err := stencilSink.Init(ctx, plugins.Config{RawConfig: tc.config})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -558,7 +561,7 @@ func TestSink(t *testing.T) {
 			ctx := context.TODO()
 
 			stencilSink := stencil.New(client, testUtils.Logger)
-			err := stencilSink.Init(ctx, tc.config)
+			err := stencilSink.Init(ctx, plugins.Config{RawConfig: tc.config})
 			if err != nil {
 				t.Fatal(err)
 			}

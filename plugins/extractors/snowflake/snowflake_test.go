@@ -21,13 +21,19 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
+const (
+	urnScope = "test-snowflake"
+)
+
 // TestInit tests the configs
 func TestInit(t *testing.T) {
 	t.Run("should return error for invalid config", func(t *testing.T) {
-		err := snowflake.New(utils.Logger).Init(context.TODO(), map[string]interface{}{
-			"invalid_config": "invalid_config_value",
-		})
-		assert.Equal(t, plugins.InvalidConfigError{}, err)
+		err := snowflake.New(utils.Logger).Init(context.TODO(), plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"invalid_config": "invalid_config_value",
+			}})
+		assert.ErrorAs(t, err, &plugins.InvalidConfigError{})
 	})
 }
 
@@ -59,9 +65,11 @@ func TestExtract(t *testing.T) {
 			utils.Logger,
 			snowflake.WithHTTPTransport(r))
 
-		if err := newExtractor.Init(ctx, map[string]interface{}{
-			"connection_url": "testing:Snowtest0512@lrwfgiz-hi47152/SNOWFLAKE_SAMPLE_DATA",
-		}); err != nil {
+		if err := newExtractor.Init(ctx, plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"connection_url": "testing:Snowtest0512@lrwfgiz-hi47152/SNOWFLAKE_SAMPLE_DATA",
+			}}); err != nil {
 			t.Fatal(err)
 		}
 

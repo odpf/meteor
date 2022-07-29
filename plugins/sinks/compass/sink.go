@@ -27,50 +27,48 @@ type Config struct {
 	Labels  map[string]string `mapstructure:"labels"`
 }
 
-var sampleConfig = `
-# The hostname of the compass service
-host: https://compass.com
-# Additional HTTP headers send to compass, multiple headers value are separated by a comma
-headers:
-	Compass-User-Email: meteor@odpf.io
-	X-Other-Header: value1, value2
-# The labels to pass as payload label of the patch api
-labels:
-	myCustom: $properties.attributes.myCustomField
-	sampleLabel: $properties.labels.sampleLabelField
-`
+var info = plugins.Info{
+	Description: "Send metadata to compass http service",
+	Summary:     summary,
+	Tags:        []string{"http", "sink"},
+	SampleConfig: `
+	# The hostname of the compass service
+	host: https://compass.com
+	# Additional HTTP headers send to compass, multiple headers value are separated by a comma
+	headers:
+		Compass-User-Email: meteor@odpf.io
+		X-Other-Header: value1, value2
+	# The labels to pass as payload label of the patch api
+	labels:
+		myCustom: $properties.attributes.myCustomField
+		sampleLabel: $properties.labels.sampleLabelField
+	`,
+}
 
 type httpClient interface {
 	Do(*http.Request) (*http.Response, error)
 }
 
 type Sink struct {
+	plugins.BasePlugin
 	client httpClient
 	config Config
 	logger log.Logger
 }
 
 func New(c httpClient, logger log.Logger) plugins.Syncer {
-	sink := &Sink{client: c, logger: logger}
-	return sink
-}
-
-func (s *Sink) Info() plugins.Info {
-	return plugins.Info{
-		Description:  "Send metadata to compass http service",
-		SampleConfig: sampleConfig,
-		Summary:      summary,
-		Tags:         []string{"http", "sink"},
+	s := &Sink{
+		logger: logger,
+		client: c,
 	}
+	s.BasePlugin = plugins.NewBasePlugin(info, &s.config)
+
+	return s
 }
 
-func (s *Sink) Validate(configMap map[string]interface{}) (err error) {
-	return utils.BuildConfig(configMap, &Config{})
-}
-
-func (s *Sink) Init(ctx context.Context, configMap map[string]interface{}) (err error) {
-	if err = utils.BuildConfig(configMap, &s.config); err != nil {
-		return plugins.InvalidConfigError{Type: plugins.PluginTypeSink}
+func (s *Sink) Init(ctx context.Context, config plugins.Config) (err error) {
+	if err = s.BasePlugin.Init(ctx, config); err != nil {
+		return err
 	}
 
 	return

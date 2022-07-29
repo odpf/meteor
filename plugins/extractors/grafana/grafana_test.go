@@ -23,6 +23,7 @@ import (
 )
 
 var testServer *httptest.Server
+var urnScope string = "test-grafana"
 
 func TestMain(m *testing.M) {
 	testServer = NewTestServer()
@@ -36,21 +37,25 @@ func TestMain(m *testing.M) {
 
 func TestInit(t *testing.T) {
 	t.Run("should return error if for empty base_url in config", func(t *testing.T) {
-		err := grafana.New(utils.Logger).Init(context.TODO(), map[string]interface{}{
-			"base_url": "",
-			"api_key":  "qwerty123",
-		})
+		err := grafana.New(utils.Logger).Init(context.TODO(), plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"base_url": "",
+				"api_key":  "qwerty123",
+			}})
 
-		assert.Equal(t, plugins.InvalidConfigError{}, err)
+		assert.ErrorAs(t, err, &plugins.InvalidConfigError{})
 	})
 
 	t.Run("should return error if for empty api_key in config", func(t *testing.T) {
-		err := grafana.New(utils.Logger).Init(context.TODO(), map[string]interface{}{
-			"base_url": testServer.URL,
-			"api_key":  "",
-		})
+		err := grafana.New(utils.Logger).Init(context.TODO(), plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"base_url": testServer.URL,
+				"api_key":  "",
+			}})
 
-		assert.Equal(t, plugins.InvalidConfigError{}, err)
+		assert.ErrorAs(t, err, &plugins.InvalidConfigError{})
 	})
 }
 
@@ -60,7 +65,7 @@ func TestExtract(t *testing.T) {
 		expectedData := []models.Record{
 			models.NewRecord(&assetsv1beta1.Dashboard{
 				Resource: &commonv1beta1.Resource{
-					Urn:         "grafana.HzK8qNW7z",
+					Urn:         "urn:grafana:test-grafana:dashboard:HzK8qNW7z",
 					Name:        "new-dashboard-copy",
 					Service:     "grafana",
 					Url:         fmt.Sprintf("%s/d/HzK8qNW7z/new-dashboard-copy", testServer.URL),
@@ -69,7 +74,7 @@ func TestExtract(t *testing.T) {
 				},
 				Charts: []*assetsv1beta1.Chart{
 					{
-						Urn:             "HzK8qNW7z.2",
+						Urn:             "urn:grafana:test-grafana:panel:HzK8qNW7z.2",
 						Name:            "Panel Title",
 						Type:            "timeseries",
 						Source:          "grafana",
@@ -84,7 +89,7 @@ func TestExtract(t *testing.T) {
 			}),
 			models.NewRecord(&assetsv1beta1.Dashboard{
 				Resource: &commonv1beta1.Resource{
-					Urn:         "grafana.5WsKOvW7z",
+					Urn:         "urn:grafana:test-grafana:dashboard:5WsKOvW7z",
 					Name:        "test-dashboard-updated",
 					Service:     "grafana",
 					Url:         fmt.Sprintf("%s/d/5WsKOvW7z/test-dashboard-updated", testServer.URL),
@@ -93,7 +98,7 @@ func TestExtract(t *testing.T) {
 				},
 				Charts: []*assetsv1beta1.Chart{
 					{
-						Urn:             "5WsKOvW7z.4",
+						Urn:             "urn:grafana:test-grafana:panel:5WsKOvW7z.4",
 						Name:            "Panel Random",
 						Type:            "table",
 						Source:          "grafana",
@@ -105,7 +110,7 @@ func TestExtract(t *testing.T) {
 						DashboardSource: "grafana",
 					},
 					{
-						Urn:             "5WsKOvW7z.2",
+						Urn:             "urn:grafana:test-grafana:panel:5WsKOvW7z.2",
 						Name:            "Panel Title",
 						Type:            "timeseries",
 						Source:          "grafana",
@@ -122,9 +127,12 @@ func TestExtract(t *testing.T) {
 
 		ctx := context.TODO()
 		extractor := grafana.New(utils.Logger)
-		err := extractor.Init(ctx, map[string]interface{}{
-			"base_url": testServer.URL,
-			"api_key":  "qwerty123",
+		err := extractor.Init(ctx, plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"base_url": testServer.URL,
+				"api_key":  "qwerty123",
+			},
 		})
 		if err != nil {
 			t.Fatal(err)

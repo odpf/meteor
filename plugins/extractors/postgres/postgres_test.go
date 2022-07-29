@@ -37,6 +37,7 @@ const (
 	port      = "5438"
 	root      = "root"
 	defaultDB = "postgres"
+	urnScope  = "test-postgres"
 )
 
 var host = "localhost:" + port
@@ -79,11 +80,13 @@ func TestMain(m *testing.M) {
 
 func TestInit(t *testing.T) {
 	t.Run("should return error for invalid config", func(t *testing.T) {
-		err := postgres.New(utils.Logger).Init(context.TODO(), map[string]interface{}{
-			"invalid_config": "invalid_config_value",
-		})
+		err := postgres.New(utils.Logger).Init(context.TODO(), plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"invalid_config": "invalid_config_value",
+			}})
 
-		assert.Equal(t, plugins.InvalidConfigError{}, err)
+		assert.ErrorAs(t, err, &plugins.InvalidConfigError{})
 	})
 }
 
@@ -92,10 +95,11 @@ func TestExtract(t *testing.T) {
 		ctx := context.TODO()
 		extr := postgres.New(utils.Logger)
 
-		err := extr.Init(ctx, map[string]interface{}{
-			"connection_url": fmt.Sprintf("postgres://%s:%s@%s/postgres?sslmode=disable", user, pass, host),
-			"identifier":     "my-postgres",
-		})
+		err := extr.Init(ctx, plugins.Config{
+			URNScope: urnScope,
+			RawConfig: map[string]interface{}{
+				"connection_url": fmt.Sprintf("postgres://%s:%s@%s/postgres?sslmode=disable", user, pass, host),
+			}})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -149,7 +153,7 @@ func getExpected() []models.Record {
 	return []models.Record{
 		models.NewRecord(&assetsv1beta1.Table{
 			Resource: &commonv1beta1.Resource{
-				Urn:     "postgres::my-postgres/test_db/article",
+				Urn:     "urn:postgres:test-postgres:table:test_db.article",
 				Name:    "article",
 				Service: "postgres",
 				Type:    "table",
@@ -183,7 +187,7 @@ func getExpected() []models.Record {
 		}),
 		models.NewRecord(&assetsv1beta1.Table{
 			Resource: &commonv1beta1.Resource{
-				Urn:     "postgres::my-postgres/test_db/post",
+				Urn:     "urn:postgres:test-postgres:table:test_db.post",
 				Name:    "post",
 				Service: "postgres",
 				Type:    "table",

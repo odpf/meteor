@@ -15,7 +15,6 @@ import (
 	facetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/facets/v1beta1"
 	assetsv1beta1 "github.com/odpf/meteor/models/odpf/assets/v1beta1"
 	"github.com/odpf/meteor/registry"
-	"github.com/odpf/meteor/utils"
 	"github.com/pkg/errors"
 
 	"encoding/csv"
@@ -35,8 +34,16 @@ type Config struct {
 var sampleConfig = `
 path: ./path-to-a-file-or-a-directory`
 
+var info = plugins.Info{
+	Description:  "Comma separated file",
+	SampleConfig: sampleConfig,
+	Summary:      summary,
+	Tags:         []string{"file", "extractor"},
+}
+
 // Extractor manages the extraction of data from the extractor
 type Extractor struct {
+	plugins.BaseExtractor
 	config    Config
 	logger    log.Logger
 	filePaths []string
@@ -44,31 +51,17 @@ type Extractor struct {
 
 // New returns a pointer to an initialized Extractor Object
 func New(logger log.Logger) *Extractor {
-	return &Extractor{
+	e := &Extractor{
 		logger: logger,
 	}
+	e.BaseExtractor = plugins.NewBaseExtractor(info, &e.config)
+
+	return e
 }
 
-// Info returns the brief information about the extractor
-func (e *Extractor) Info() plugins.Info {
-	return plugins.Info{
-		Description:  "Comma separated file",
-		SampleConfig: sampleConfig,
-		Summary:      summary,
-		Tags:         []string{"file", "extractor"},
-	}
-}
-
-// Validate validates the configuration of the extractor
-func (e *Extractor) Validate(configMap map[string]interface{}) (err error) {
-	return utils.BuildConfig(configMap, &Config{})
-}
-
-func (e *Extractor) Init(ctx context.Context, configMap map[string]interface{}) (err error) {
-	// build config
-	err = utils.BuildConfig(configMap, &e.config)
-	if err != nil {
-		return plugins.InvalidConfigError{}
+func (e *Extractor) Init(ctx context.Context, config plugins.Config) (err error) {
+	if err = e.BaseExtractor.Init(ctx, config); err != nil {
+		return err
 	}
 
 	// build file paths to read from
@@ -80,7 +73,7 @@ func (e *Extractor) Init(ctx context.Context, configMap map[string]interface{}) 
 	return
 }
 
-//Extract checks if the extractor is configured and
+// Extract checks if the extractor is configured and
 // returns the extracted data
 func (e *Extractor) Extract(ctx context.Context, emit plugins.Emit) (err error) {
 	for _, filePath := range e.filePaths {
@@ -116,7 +109,7 @@ func (e *Extractor) buildTable(filePath string) (table *assetsv1beta1.Table, err
 	fileName := stat.Name()
 	table = &assetsv1beta1.Table{
 		Resource: &commonv1beta1.Resource{
-			Urn:     fileName,
+			Urn:     models.NewURN("csv", e.UrnScope, "file", fileName),
 			Name:    fileName,
 			Service: "csv",
 			Type:    "table",

@@ -16,15 +16,9 @@ var summary string
 
 // Processor work in a list of data
 type Processor struct {
+	plugins.BasePlugin
 	config map[string]interface{}
 	logger log.Logger
-}
-
-// New create a new processor
-func New(logger log.Logger) *Processor {
-	return &Processor{
-		logger: logger,
-	}
 }
 
 var sampleConfig = `
@@ -32,24 +26,29 @@ var sampleConfig = `
  # fieldA: valueA
  # fieldB: valueB`
 
-// Info returns the plugin information
-func (p *Processor) Info() plugins.Info {
-	return plugins.Info{
-		Description:  "Append custom fields to records",
-		SampleConfig: sampleConfig,
-		Summary:      summary,
-		Tags:         []string{"processor", "transform"},
-	}
+var info = plugins.Info{
+	Description:  "Append custom fields to records",
+	SampleConfig: sampleConfig,
+	Summary:      summary,
+	Tags:         []string{"processor", "transform"},
 }
 
-// Validate validates the plugin configuration
-func (p *Processor) Validate(configMap map[string]interface{}) (err error) {
-	return nil
+// New create a new processor
+func New(logger log.Logger) *Processor {
+	p := &Processor{
+		logger: logger,
+	}
+	p.BasePlugin = plugins.NewBasePlugin(info, &p.config)
+
+	return p
 }
 
 // Process processes the data
-func (p *Processor) Init(ctx context.Context, config map[string]interface{}) (err error) {
-	p.config = config
+func (p *Processor) Init(ctx context.Context, config plugins.Config) (err error) {
+	if err = p.BasePlugin.Init(ctx, config); err != nil {
+		return err
+	}
+
 	return
 }
 

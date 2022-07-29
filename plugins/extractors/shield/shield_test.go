@@ -5,9 +5,10 @@ package shield_test
 
 import (
 	"context"
+	"testing"
+
 	"github.com/odpf/meteor/plugins/extractors/shield"
 	"google.golang.org/protobuf/types/known/timestamppb"
-	"testing"
 
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/test/mocks"
@@ -23,14 +24,15 @@ var (
 	validConfig = map[string]interface{}{
 		"host": "shield:80",
 	}
+	urnScope = "test-shield"
 )
 
 func TestInit(t *testing.T) {
 	t.Run("should return error if config is invalid", func(t *testing.T) {
 		extr := shield.New(testutils.Logger, new(mockClient))
-		err := extr.Init(context.TODO(), map[string]interface{}{})
+		err := extr.Init(context.TODO(), plugins.Config{URNScope: urnScope, RawConfig: map[string]interface{}{}})
 
-		assert.Equal(t, plugins.InvalidConfigError{}, err)
+		assert.ErrorAs(t, err, &plugins.InvalidConfigError{})
 	})
 
 	t.Run("should hit shield /admin/ping to check connection if config is valid", func(t *testing.T) {
@@ -42,7 +44,7 @@ func TestInit(t *testing.T) {
 		defer client.AssertExpectations(t)
 
 		extr := shield.New(testutils.Logger, client)
-		err = extr.Init(ctx, validConfig)
+		err = extr.Init(ctx, plugins.Config{URNScope: urnScope, RawConfig: validConfig})
 		assert.NoError(t, err)
 	})
 }
@@ -58,7 +60,7 @@ func TestExtract(t *testing.T) {
 		defer client.AssertExpectations(t)
 
 		extr := shield.New(testutils.Logger, client)
-		err = extr.Init(ctx, validConfig)
+		err = extr.Init(ctx, plugins.Config{URNScope: urnScope, RawConfig: validConfig})
 		require.NoError(t, err)
 
 		emitter := mocks.NewEmitter()

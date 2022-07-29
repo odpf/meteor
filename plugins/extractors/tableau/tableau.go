@@ -3,7 +3,6 @@ package tableau
 import (
 	"context"
 	_ "embed"
-	"fmt"
 	"net/http"
 
 	"github.com/odpf/meteor/models"
@@ -30,21 +29,28 @@ password: xxxxxxxxxx
 sitename: testdev550928
 `
 
+var info = plugins.Info{
+	Description:  "Dashboard list from Tableau server",
+	SampleConfig: sampleConfig,
+	Summary:      summary,
+	Tags:         []string{"oss", "extractor"},
+}
+
 // Config that holds a set of configuration for tableau extractor
 type Config struct {
-	Host       string `mapstructure:"host" validate:"required"`
-	Version    string `mapstructure:"version" validate:"required"` // float as string
-	Identifier string `mapstructure:"identifier" validate:"required"`
-	Username   string `mapstructure:"username"`
-	Password   string `mapstructure:"password" validate:"required_with=Username"`
-	AuthToken  string `mapstructure:"auth_token" validate:"required_without=Username"`
-	SiteID     string `mapstructure:"site_id" validate:"required_without=Username"`
-	Sitename   string `mapstructure:"sitename"`
+	Host      string `mapstructure:"host" validate:"required"`
+	Version   string `mapstructure:"version" validate:"required"` // float as string
+	Username  string `mapstructure:"username"`
+	Password  string `mapstructure:"password" validate:"required_with=Username"`
+	AuthToken string `mapstructure:"auth_token" validate:"required_without=Username"`
+	SiteID    string `mapstructure:"site_id" validate:"required_without=Username"`
+	Sitename  string `mapstructure:"sitename"`
 }
 
 // Extractor manages the extraction of data
 // from tableau server
 type Extractor struct {
+	plugins.BaseExtractor
 	config     Config
 	logger     log.Logger
 	httpClient *http.Client
@@ -66,6 +72,7 @@ func New(logger log.Logger, opts ...Option) *Extractor {
 	e := &Extractor{
 		logger: logger,
 	}
+	e.BaseExtractor = plugins.NewBaseExtractor(info, &e.config)
 
 	for _, opt := range opts {
 		opt(e)
@@ -75,26 +82,9 @@ func New(logger log.Logger, opts ...Option) *Extractor {
 	return e
 }
 
-// Info returns the brief information of the extractor
-func (e *Extractor) Info() plugins.Info {
-	return plugins.Info{
-		Description:  "Dashboard list from Tableau server",
-		SampleConfig: sampleConfig,
-		Summary:      summary,
-		Tags:         []string{"oss", "extractor"},
-	}
-}
-
-// Validate validates the configuration of the extractor
-func (e *Extractor) Validate(configMap map[string]interface{}) (err error) {
-	return utils.BuildConfig(configMap, &Config{})
-}
-
-func (e *Extractor) Init(ctx context.Context, configMap map[string]interface{}) (err error) {
-	// build and validate config
-	err = utils.BuildConfig(configMap, &e.config)
-	if err != nil {
-		return plugins.InvalidConfigError{}
+func (e *Extractor) Init(ctx context.Context, config plugins.Config) (err error) {
+	if err = e.BaseExtractor.Init(ctx, config); err != nil {
+		return err
 	}
 
 	err = e.client.Init(ctx, e.config)
@@ -133,7 +123,7 @@ func (e *Extractor) Extract(ctx context.Context, emit plugins.Emit) (err error) 
 
 func (e *Extractor) buildDashboard(wb *Workbook) (data *assetsv1beta1.Dashboard, err error) {
 	lineages := e.buildLineage(wb.UpstreamTables)
-	dashboardURN := models.DashboardURN("tableau", e.config.Identifier, fmt.Sprintf("workbook/%s", wb.ID))
+	dashboardURN := models.NewURN("tableau", e.UrnScope, "workbook", wb.ID)
 	data = &assetsv1beta1.Dashboard{
 		Resource: &commonv1beta1.Resource{
 			Urn:         dashboardURN,
@@ -174,7 +164,7 @@ func (e *Extractor) buildDashboard(wb *Workbook) (data *assetsv1beta1.Dashboard,
 
 func (e *Extractor) buildCharts(dashboardURN string, wb *Workbook, lineages *facetsv1beta1.Lineage) (charts []*assetsv1beta1.Chart) {
 	for _, sh := range wb.Sheets {
-		chartURN := models.DashboardURN("tableau", e.config.Identifier, fmt.Sprintf("sheet/%s", sh.ID))
+		chartURN := models.NewURN("tableau", e.UrnScope, "sheet", sh.ID)
 		charts = append(charts, &assetsv1beta1.Chart{
 			Urn:          chartURN,
 			Name:         sh.Name,

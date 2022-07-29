@@ -1,3 +1,6 @@
+//go:build plugins
+// +build plugins
+
 package compass_test
 
 import (
@@ -42,9 +45,9 @@ func TestInit(t *testing.T) {
 		for i, config := range invalidConfigs {
 			t.Run(fmt.Sprintf("test invalid config #%d", i+1), func(t *testing.T) {
 				compassSink := compass.New(newMockHTTPClient(config, http.MethodPatch, url, compass.RequestPayload{}), testUtils.Logger)
-				err := compassSink.Init(context.TODO(), config)
+				err := compassSink.Init(context.TODO(), plugins.Config{RawConfig: config})
 
-				assert.Equal(t, plugins.InvalidConfigError{Type: plugins.PluginTypeSink}, err)
+				assert.ErrorAs(t, err, &plugins.InvalidConfigError{})
 			})
 		}
 	})
@@ -62,9 +65,9 @@ func TestSink(t *testing.T) {
 		ctx := context.TODO()
 
 		compassSink := compass.New(client, testUtils.Logger)
-		err := compassSink.Init(ctx, map[string]interface{}{
+		err := compassSink.Init(ctx, plugins.Config{RawConfig: map[string]interface{}{
 			"host": host,
-		})
+		}})
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -83,9 +86,9 @@ func TestSink(t *testing.T) {
 				ctx := context.TODO()
 
 				compassSink := compass.New(client, testUtils.Logger)
-				err := compassSink.Init(ctx, map[string]interface{}{
+				err := compassSink.Init(ctx, plugins.Config{RawConfig: map[string]interface{}{
 					"host": host,
-				})
+				}})
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -163,7 +166,7 @@ func TestSink(t *testing.T) {
 			client.SetupResponse(200, "")
 			ctx := context.TODO()
 			compassSink := compass.New(client, testUtils.Logger)
-			err := compassSink.Init(ctx, c)
+			err := compassSink.Init(ctx, plugins.Config{RawConfig: c})
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -456,7 +459,7 @@ func TestSink(t *testing.T) {
 			ctx := context.TODO()
 
 			compassSink := compass.New(client, testUtils.Logger)
-			err := compassSink.Init(ctx, tc.config)
+			err := compassSink.Init(ctx, plugins.Config{RawConfig: tc.config})
 			if err != nil {
 				t.Fatal(err)
 			}

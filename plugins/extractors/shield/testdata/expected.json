@@ -1,7 +1,7 @@
 [
   {
     "resource": {
-      "urn": "shield::shield:80/user-A",
+      "urn": "urn:shield:test-shield:user:user-A",
       "type": "user",
       "name": "fullname-A",
       "service": "shield",
@@ -30,7 +30,7 @@
   },
   {
     "resource": {
-      "urn": "shield::shield:80/user-B",
+      "urn": "urn:shield:test-shield:user:user-B",
       "name": "fullname-B",
       "service": "shield",
       "type": "user",

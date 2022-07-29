@@ -17,7 +17,6 @@ import (
 
 	"github.com/odpf/meteor/plugins"
 	"github.com/odpf/meteor/registry"
-	"github.com/odpf/meteor/utils"
 	"github.com/odpf/salt/log"
 	_ "github.com/prestodb/presto-go-client/presto" // presto driver
 )
@@ -35,8 +34,16 @@ var sampleConfig = `
 connection_url: "http://user:pass@localhost:8080"
 exclude_catalog: "memory,system,tpcds,tpch"`
 
+var info = plugins.Info{
+	Description:  "Table metadata from Presto server.",
+	SampleConfig: sampleConfig,
+	Summary:      summary,
+	Tags:         []string{"oss", "extractor"},
+}
+
 // Extractor manages the extraction of data
 type Extractor struct {
+	plugins.BaseExtractor
 	logger          log.Logger
 	config          Config
 	client          *sql.DB
@@ -50,31 +57,18 @@ type Extractor struct {
 
 // New returns a pointer to an initialized Extractor Object
 func New(logger log.Logger) *Extractor {
-	return &Extractor{
+	e := &Extractor{
 		logger: logger,
 	}
-}
+	e.BaseExtractor = plugins.NewBaseExtractor(info, &e.config)
 
-// Info returns the brief information about the extractor
-func (e *Extractor) Info() plugins.Info {
-	return plugins.Info{
-		Description:  "Table metadata from Presto server.",
-		SampleConfig: sampleConfig,
-		Summary:      summary,
-		Tags:         []string{"oss", "extractor"},
-	}
-}
-
-// Validate validates the configuration of the extractor
-func (e *Extractor) Validate(configMap map[string]interface{}) (err error) {
-	return utils.BuildConfig(configMap, &Config{})
+	return e
 }
 
 // Init initializes the extractor
-func (e *Extractor) Init(_ context.Context, configMap map[string]interface{}) (err error) {
-	// Build and validate config received from recipe
-	if err = utils.BuildConfig(configMap, &e.config); err != nil {
-		return plugins.InvalidConfigError{}
+func (e *Extractor) Init(ctx context.Context, config plugins.Config) (err error) {
+	if err = e.BaseExtractor.Init(ctx, config); err != nil {
+		return err
 	}
 
 	// build excluded catalog list
@@ -171,7 +165,7 @@ func (e *Extractor) processTable(db *sql.DB, catalog string, database string, ta
 	// push table to channel
 	result = &assetsv1beta1.Table{
 		Resource: &commonv1beta1.Resource{
-			Urn:     fmt.Sprintf("%s.%s.%s", catalog, database, tableName),
+			Urn:     models.NewURN("presto", e.UrnScope, "table", fmt.Sprintf("%s.%s.%s", catalog, database, tableName)),
 			Name:    tableName,
 			Service: "presto",
 			Type:    "table",
